@@ -61,9 +61,9 @@ function Navbar({ brand, links, activeSection, theme, onThemeToggle }) {
   const [isOpen, setIsOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 130,
-    damping: 26,
-    mass: 0.18,
+    stiffness: 200,
+    damping: 16,
+    mass: 0.1,
   });
 
   const closeMenu = () => setIsOpen(false);
