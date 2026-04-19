@@ -414,15 +414,141 @@ function DataAnalysis({ content, isDark = true }) {
                   </Motion.div>
                 ))}
               </div>
-              <div
-                className={`rounded-lg p-4 ${
+              <Motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className={`rounded-lg p-6 flex flex-col items-center justify-center min-h-[180px] relative ${
                   isDark
-                    ? "bg-slate-800/50 border border-slate-700"
-                    : "bg-slate-100/50 border border-slate-300"
+                    ? "bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700"
+                    : "bg-gradient-to-br from-slate-100/50 to-slate-50/50 border border-slate-300"
                 }`}
               >
-                <p className={`text-sm ${subtextClass}`}>{content.tokenFlow}</p>
-              </div>
+                {/* Flow Cycle Title */}
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wider mb-4 ${labelClass}`}
+                >
+                  System Flow
+                </p>
+
+                {/* Animated Flow Stages */}
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {["Earn", "Use", "Upgrade", "Circulate", "Re-enter"].map(
+                    (stage, index) => (
+                      <Motion.div
+                        key={index}
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                      >
+                        {/* Stage Badge */}
+                        <Motion.div
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${
+                            isDark
+                              ? "bg-purple-500/30 text-purple-200 border border-purple-400/50"
+                              : "bg-purple-200/50 text-purple-700 border border-purple-400/60"
+                          }`}
+                          whileHover={{
+                            scale: 1.1,
+                            boxShadow: isDark
+                              ? "0 0 15px rgba(168, 85, 247, 0.4)"
+                              : "0 0 15px rgba(139, 69, 193, 0.3)",
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {stage}
+                        </Motion.div>
+
+                        {/* Arrow between stages */}
+                        {index < 4 && (
+                          <Motion.div
+                            className={`text-lg font-bold ${
+                              isDark
+                                ? "text-purple-400/60"
+                                : "text-purple-500/60"
+                            }`}
+                            animate={{
+                              x: [0, 3, 0],
+                              opacity: [0.6, 1, 0.6],
+                            }}
+                            transition={{
+                              duration: 2,
+                              delay: index * 0.2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          >
+                            →
+                          </Motion.div>
+                        )}
+                      </Motion.div>
+                    ),
+                  )}
+                </div>
+
+                {/* Cycle Indicator */}
+                <Motion.div
+                  className="mt-4 text-xs"
+                  animate={{
+                    opacity: [0.4, 1, 0.4],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <span
+                    className={`${
+                      isDark ? "text-purple-300/70" : "text-purple-600/70"
+                    }`}
+                  >
+                    ↻ Continuous cycle
+                  </span>
+                </Motion.div>
+
+                {/* Animated circular progress indicator */}
+                <svg
+                  className="absolute top-2 right-2 w-8 h-8"
+                  viewBox="0 0 40 40"
+                >
+                  <Motion.circle
+                    cx="20"
+                    cy="20"
+                    r="18"
+                    fill="none"
+                    strokeWidth="1"
+                    stroke={
+                      isDark
+                        ? "rgba(168, 85, 247, 0.2)"
+                        : "rgba(139, 69, 193, 0.2)"
+                    }
+                  />
+                  <Motion.circle
+                    cx="20"
+                    cy="20"
+                    r="18"
+                    fill="none"
+                    strokeWidth="2"
+                    stroke={
+                      isDark
+                        ? "rgba(168, 85, 247, 0.6)"
+                        : "rgba(139, 69, 193, 0.6)"
+                    }
+                    strokeDasharray="113"
+                    strokeDashoffset={113}
+                    animate={{ strokeDashoffset: [113, 0] }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  />
+                </svg>
+              </Motion.div>
             </div>
           </Motion.div>
 
