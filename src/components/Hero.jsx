@@ -1,4 +1,5 @@
 import { motion as Motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { animations } from "../data/animations";
 import Countdown from "./Countdown";
 import AirdropAnimation from "./AirdropAnimation";
@@ -98,8 +99,34 @@ const wordVariants = {
   },
 };
 
+// Dynamic rotating text variants
+const swappingWordVariants = {
+  enter: { opacity: 0, y: 20 },
+  center: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
 function Hero({ brand, content, theme }) {
+  const [swappingIndex, setSwappingIndex] = useState(0);
+  
+  // Dynamic word variations for swapping effect
+  const dynamicWords = [
+    "Smarter Gaming Economy",
+    "Next-Gen Gaming Universe", 
+    "PlayToEarn Revolution",
+    "Decentralized Gaming",
+  ];
+
   const isDark = theme === "dark";
+  
+  // Rotate through dynamic words every 4 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSwappingIndex((prev) => (prev + 1) % dynamicWords.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   const heroBackdrop = !isDark
     ? "bg-[radial-gradient(circle_at_15%_20%,rgba(168,85,247,0.2),transparent_38%),radial-gradient(circle_at_82%_16%,rgba(139,69,193,0.18),transparent_42%),linear-gradient(180deg,#f6fbff_0%,#edf6ff_55%,#e2f3ff_100%)]"
     : "bg-[radial-gradient(circle_at_15%_20%,rgba(168,85,247,0.18),transparent_40%),radial-gradient(circle_at_80%_18%,rgba(139,69,193,0.12),transparent_45%),linear-gradient(180deg,#020617_0%,#020617_60%,#030A15_100%)]";
@@ -142,32 +169,70 @@ function Hero({ brand, content, theme }) {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.5 }}
-            className="space-y-2"
+            className="space-y-3"
           >
-            {Array.from({ length: Math.ceil(titleWords.length / 3) }).map(
-              (_, lineIndex) => (
-                <div key={lineIndex} className="flex flex-wrap gap-2 sm:gap-3">
-                  {titleWords
-                    .slice(lineIndex * 3, (lineIndex + 1) * 3)
-                    .map((word, idx) => (
-                      <Motion.span
-                        key={idx}
-                        variants={wordVariants}
-                        className={`text-4xl font-black leading-tight sm:text-5xl lg:text-6xl ${
-                          idx === titleWords.length - 1 ||
-                          idx === titleWords.length - 2
-                            ? "bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent"
-                            : isDark
-                              ? "text-white"
-                              : "text-slate-900"
-                        }`}
-                      >
-                        {word}
-                      </Motion.span>
-                    ))}
-                </div>
-              ),
-            )}
+            {/* Main Title with Word Animation */}
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              <Motion.span
+                variants={wordVariants}
+                className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl text-white"
+              >
+                Build,
+              </Motion.span>
+              <Motion.span
+                variants={wordVariants}
+                className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl text-white"
+              >
+                Play,
+              </Motion.span>
+              <Motion.span
+                variants={wordVariants}
+                className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl text-white"
+              >
+                and
+              </Motion.span>
+            </div>
+
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              <Motion.span
+                variants={wordVariants}
+                className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl text-white"
+              >
+                Earn
+              </Motion.span>
+              <Motion.span
+                variants={wordVariants}
+                className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl text-white"
+              >
+                in
+              </Motion.span>
+              <Motion.span
+                variants={wordVariants}
+                className="text-4xl font-black leading-tight sm:text-5xl lg:text-6xl text-white"
+              >
+                a
+              </Motion.span>
+            </div>
+
+            {/* Swapping Dynamic Text */}
+            <div className="relative h-20 sm:h-24 lg:h-28 overflow-hidden">
+              <Motion.div
+                key={swappingIndex}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                variants={swappingWordVariants}
+                transition={{
+                  y: { type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.4 },
+                }}
+                className="absolute inset-0"
+              >
+                <span className="inline-block text-4xl font-black leading-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
+                  {dynamicWords[swappingIndex]}
+                </span>
+              </Motion.div>
+            </div>
           </Motion.div>
           <Motion.div
             variants={animations.fadeInUp}
