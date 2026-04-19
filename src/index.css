@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@500;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&display=swap");
 @import "tailwindcss";
 
 /* Performance optimizations */
@@ -20,6 +20,7 @@
   color-scheme: dark;
   --animation-duration: 0.3s;
   --animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
+  font-display: swap;
 }
 
 html[data-theme="light"] {

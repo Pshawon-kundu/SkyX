@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Home from "./pages/Home";
-import SplashScreen from "./components/SplashScreen";
+import { useState, useEffect, Suspense, lazy } from "react";
+const Home = lazy(() => import("./pages/Home"));
+const SplashScreen = lazy(() => import("./components/SplashScreen"));
 import { siteContent } from "./data/siteContent";
 
 function App() {
@@ -17,11 +17,17 @@ function App() {
 
   return (
     <>
-      {showSplash && <SplashScreen onComplete={() => setShowSplash(false)} />}
-      <Routes>
-        <Route path="/" element={<Home content={siteContent} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      {showSplash && (
+        <Suspense fallback={null}>
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        </Suspense>
+      )}
+      <Suspense fallback={<div />}>
+        <Routes>
+          <Route path="/" element={<Home content={siteContent} />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }

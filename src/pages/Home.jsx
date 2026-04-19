@@ -1,22 +1,24 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, Suspense, lazy } from "react";
 import { motion as Motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Stats from "../components/Stats";
-import Features from "../components/Features";
-import WhyMatters from "../components/WhyMatters";
-import Ecosystem from "../components/Ecosystem";
-import DataAnalysis from "../components/DataAnalysis";
-import Audience from "../components/Audience";
-import PitchDeck from "../components/PitchDeck";
-import Roadmap from "../components/Roadmap";
-import Trust from "../components/Trust";
-import Apps from "../components/Apps";
-import Partners from "../components/Partners";
-import Community from "../components/Community";
-import FinalCta from "../components/FinalCta";
-import Footer from "../components/Footer";
 import AnimatedBackground from "../components/AnimatedBackground";
+
+// Lazy load below-the-fold components
+const Features = lazy(() => import("../components/Features"));
+const WhyMatters = lazy(() => import("../components/WhyMatters"));
+const Ecosystem = lazy(() => import("../components/Ecosystem"));
+const DataAnalysis = lazy(() => import("../components/DataAnalysis"));
+const Audience = lazy(() => import("../components/Audience"));
+const PitchDeck = lazy(() => import("../components/PitchDeck"));
+const Roadmap = lazy(() => import("../components/Roadmap"));
+const Trust = lazy(() => import("../components/Trust"));
+const Apps = lazy(() => import("../components/Apps"));
+const Partners = lazy(() => import("../components/Partners"));
+const Community = lazy(() => import("../components/Community"));
+const FinalCta = lazy(() => import("../components/FinalCta"));
+const Footer = lazy(() => import("../components/Footer"));
 
 function Home({ content }) {
   const sectionIds = useMemo(
@@ -51,8 +53,13 @@ function Home({ content }) {
   }, [theme]);
 
   useEffect(() => {
+    let lastUpdateTime = 0;
+    const throttleDelay = 16; // ~60fps
+
     const handleMouseMove = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      const now = Date.now();
+      if (now - lastUpdateTime < throttleDelay) return;
+      lastUpdateTime = now;
 
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate(${e.clientX - 15}px, ${e.clientY - 15}px)`;
@@ -73,7 +80,7 @@ function Home({ content }) {
       }
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
     // Add hover listeners to interactive elements
     const interactiveElements = document.querySelectorAll(
@@ -81,8 +88,8 @@ function Home({ content }) {
     );
 
     interactiveElements.forEach((el) => {
-      el.addEventListener("mouseenter", handleMouseEnter);
-      el.addEventListener("mouseleave", handleMouseLeave);
+      el.addEventListener("mouseenter", handleMouseEnter, { passive: true });
+      el.addEventListener("mouseleave", handleMouseLeave, { passive: true });
     });
 
     return () => {
@@ -149,29 +156,56 @@ function Home({ content }) {
         <main>
           <Hero brand={content.brand} content={content.hero} theme={theme} />
           <Stats stats={content.stats} isDark={theme === "dark"} />
-          <WhyMatters content={content.whyMatters} isDark={theme === "dark"} />
-          <Ecosystem
-            products={content.ecosystem.modules}
-            title={content.ecosystem.title}
-            isDark={theme === "dark"}
-          />
-          <DataAnalysis
-            content={content.dataAnalysis}
-            isDark={theme === "dark"}
-          />
-          <Audience content={content.audience} isDark={theme === "dark"} />
-          <PitchDeck content={content.pitchDeck} isDark={theme === "dark"} />
-          <Roadmap content={content.roadmap} isDark={theme === "dark"} />
-          <Trust content={content.trust} isDark={theme === "dark"} />
-          <Features features={content.features} isDark={theme === "dark"} />
-          <Apps apps={content.apps} theme={theme} isDark={theme === "dark"} />
-          <Partners partners={content.partners} isDark={theme === "dark"} />
-          <Community
-            markets={content.markets}
-            communities={content.communities}
-            isDark={theme === "dark"}
-          />
-          <FinalCta content={content.finalCta} isDark={theme === "dark"} />
+          <Suspense fallback={<div className="min-h-96" />}>
+            <WhyMatters
+              content={content.whyMatters}
+              isDark={theme === "dark"}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Ecosystem
+              products={content.ecosystem.modules}
+              title={content.ecosystem.title}
+              isDark={theme === "dark"}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <DataAnalysis
+              content={content.dataAnalysis}
+              isDark={theme === "dark"}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Audience content={content.audience} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <PitchDeck content={content.pitchDeck} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Roadmap content={content.roadmap} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Trust content={content.trust} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Features features={content.features} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Apps apps={content.apps} theme={theme} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Partners partners={content.partners} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Community
+              markets={content.markets}
+              communities={content.communities}
+              isDark={theme === "dark"}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <FinalCta content={content.finalCta} isDark={theme === "dark"} />
+          </Suspense>
 
           <section
             id="about"
@@ -216,11 +250,13 @@ function Home({ content }) {
             </div>
           </section>
         </main>
-        <Footer
-          brand={content.brand}
-          links={content.navLinks}
-          isDark={theme === "dark"}
-        />
+        <Suspense fallback={<div className="min-h-32" />}>
+          <Footer
+            brand={content.brand}
+            links={content.navLinks}
+            isDark={theme === "dark"}
+          />
+        </Suspense>
       </div>
     </div>
   );
