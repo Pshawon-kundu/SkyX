@@ -114,7 +114,7 @@ function Stats({ stats, isDark = true }) {
                   isDark ? "text-purple-200" : "text-purple-700"
                 }`}
               >
-                {counters[index]}
+                {counters[index] > 0 ? counters[index] : ""}
                 {stat.value.replace(/\d+/g, "")}
               </Motion.p>
 
