@@ -99,10 +99,10 @@ function Navbar({ brand, links, activeSection, theme, onThemeToggle }) {
         variants={navAnimation}
         initial="hidden"
         animate="visible"
-        className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${
+        className={`fixed top-0 left-0 right-0 z-50 w-full border-b backdrop-blur-xl ${
           isDark
-            ? "border-purple-500/20 bg-slate-950/85"
-            : "border-purple-200/40 bg-white/80"
+            ? "border-purple-500/20 bg-slate-950/95"
+            : "border-purple-200/40 bg-white/95"
         }`}
       >
         <nav className="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
