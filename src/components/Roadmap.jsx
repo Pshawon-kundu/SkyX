@@ -113,9 +113,6 @@ function Roadmap({ content, isDark = true }) {
             variants={containerVariants}
             className="mt-12"
           >
-            {/* Desktop Timeline Line */}
-            <div className="hidden lg:block absolute left-0 right-0 h-1 bg-gradient-to-r from-blue-500/30 via-purple-500/30 to-emerald-500/30 mt-24 pointer-events-none" />
-
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {content.phases.map((phase, index) => {
                 const Icon = phaseIcons[index % phaseIcons.length];
@@ -140,7 +137,10 @@ function Roadmap({ content, isDark = true }) {
                         initial={{ scale: 0 }}
                         whileInView={{ scale: 1 }}
                         viewport={{ once: true }}
-                        transition={{ type: "spring", delay: index * 0.1 + 0.3 }}
+                        transition={{
+                          type: "spring",
+                          delay: index * 0.1 + 0.3,
+                        }}
                         className={`relative mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full border-2 ${colors.number} font-bold text-white`}
                       >
                         {index + 1}
@@ -187,9 +187,7 @@ function Roadmap({ content, isDark = true }) {
                               />
                               <p
                                 className={`text-sm leading-relaxed ${
-                                  isDark
-                                    ? "text-slate-300"
-                                    : "text-slate-700"
+                                  isDark ? "text-slate-300" : "text-slate-700"
                                 }`}
                               >
                                 {item}
