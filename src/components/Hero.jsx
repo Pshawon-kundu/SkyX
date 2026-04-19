@@ -108,17 +108,17 @@ const swappingWordVariants = {
 
 function Hero({ brand, content, theme }) {
   const [swappingIndex, setSwappingIndex] = useState(0);
-  
+
   // Dynamic word variations for swapping effect
   const dynamicWords = [
     "Smarter Gaming Economy",
-    "Next-Gen Gaming Universe", 
+    "Next-Gen Gaming Universe",
     "PlayToEarn Revolution",
     "Decentralized Gaming",
   ];
 
   const isDark = theme === "dark";
-  
+
   // Rotate through dynamic words every 4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -215,7 +215,7 @@ function Hero({ brand, content, theme }) {
             </div>
 
             {/* Swapping Dynamic Text */}
-            <div className="relative h-20 sm:h-24 lg:h-28 overflow-hidden">
+            <div className="relative w-full min-h-20 sm:min-h-24 lg:min-h-28 flex items-start">
               <Motion.div
                 key={swappingIndex}
                 initial="enter"
@@ -226,9 +226,9 @@ function Hero({ brand, content, theme }) {
                   y: { type: "spring", stiffness: 300, damping: 30 },
                   opacity: { duration: 0.4 },
                 }}
-                className="absolute inset-0"
+                className="w-full"
               >
-                <span className="inline-block text-4xl font-black leading-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent animate-pulse">
+                <span className="inline-block text-4xl font-black leading-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
                   {dynamicWords[swappingIndex]}
                 </span>
               </Motion.div>
