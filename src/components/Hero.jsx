@@ -2,11 +2,30 @@ import { motion as Motion } from "framer-motion";
 import { animations } from "../data/animations";
 import Countdown from "./Countdown";
 import AirdropAnimation from "./AirdropAnimation";
+import { TrendingUp, Zap, Shield } from "lucide-react";
 
 const pulseMetrics = [
-  { label: "Gaming Market", value: "$200B+", duration: 2.8 },
-  { label: "Launch Date", value: "April 25", duration: 2.2 },
-  { label: "Early Access", value: "Limited", duration: 3.1 },
+  {
+    label: "Gaming Market",
+    value: "$200B+",
+    duration: 2.8,
+    icon: TrendingUp,
+    color: "from-emerald-500 to-cyan-500",
+  },
+  {
+    label: "Launch Date",
+    value: "April 25",
+    duration: 2.2,
+    icon: Zap,
+    color: "from-purple-500 to-pink-500",
+  },
+  {
+    label: "Early Access",
+    value: "Limited",
+    duration: 3.1,
+    icon: Shield,
+    color: "from-amber-500 to-orange-500",
+  },
 ];
 
 const heroNodes = [
@@ -56,6 +75,29 @@ const heroNodeMap = Object.fromEntries(
   heroNodes.map((node) => [node.id, node]),
 );
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const wordVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  },
+};
+
 function Hero({ brand, content, theme }) {
   const isDark = theme === "dark";
   const heroBackdrop = !isDark
@@ -70,6 +112,8 @@ function Hero({ brand, content, theme }) {
   const nodeClass = isDark
     ? "border-purple-200/65 bg-purple-300/45 shadow-[0_0_14px_rgba(168,85,247,0.85)]"
     : "border-purple-700/55 bg-purple-500/65 shadow-[0_0_10px_rgba(139,69,193,0.5)]";
+
+  const titleWords = content.title.split(" ");
 
   return (
     <section id="home" className="relative overflow-hidden pt-14 sm:pt-20">
@@ -87,68 +131,115 @@ function Hero({ brand, content, theme }) {
         >
           <Motion.p
             variants={animations.fadeInUp}
-            className="inline-flex rounded-full border border-purple-400/30 bg-purple-400/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-purple-300"
-            whileHover={animations.hoverLift}
+            className="inline-flex rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-purple-200 backdrop-blur-sm"
+            whileHover={{ scale: 1.05, borderColor: "rgba(168,85,247,0.6)" }}
           >
-            {brand.name} • {brand.ticker}
+            ✨ {brand.name} • {brand.ticker}
           </Motion.p>
-          <Motion.h1
-            variants={animations.fadeInUp}
-            className="max-w-2xl text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl"
+
+          <Motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.5 }}
+            className="space-y-2"
           >
-            {content.title}
-          </Motion.h1>
+            {Array.from({ length: Math.ceil(titleWords.length / 3) }).map(
+              (_, lineIndex) => (
+                <div key={lineIndex} className="flex flex-wrap gap-2 sm:gap-3">
+                  {titleWords
+                    .slice(lineIndex * 3, (lineIndex + 1) * 3)
+                    .map((word, idx) => (
+                      <Motion.span
+                        key={idx}
+                        variants={wordVariants}
+                        className={`text-4xl font-black leading-tight sm:text-5xl lg:text-6xl ${
+                          idx === titleWords.length - 1 ||
+                          idx === titleWords.length - 2
+                            ? "bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent"
+                            : isDark
+                              ? "text-white"
+                              : "text-slate-900"
+                        }`}
+                      >
+                        {word}
+                      </Motion.span>
+                    ))}
+                </div>
+              ),
+            )}
+          </Motion.div>
           <Motion.div
             variants={animations.fadeInUp}
-            className="h-1.5 w-36 overflow-hidden rounded-full bg-cyan-400/15"
+            className="h-1.5 w-40 overflow-hidden rounded-full bg-gradient-to-r from-purple-400/20 to-pink-400/20"
           >
             <Motion.span
-              className="block h-full w-20 rounded-full bg-purple-300"
+              className="block h-full w-20 rounded-full bg-gradient-to-r from-purple-400 to-pink-400"
               animate={{
                 x: [-28, 118, -28],
                 boxShadow: [
                   "0 0 0 rgba(168, 85, 247, 0)",
-                  "0 0 20px rgba(168, 85, 247, 0.5)",
+                  "0 0 24px rgba(236, 72, 153, 0.6)",
                   "0 0 0 rgba(168, 85, 247, 0)",
                 ],
               }}
               transition={{
-                duration: 3.6,
+                duration: 3.2,
                 repeat: Number.POSITIVE_INFINITY,
                 ease: "easeInOut",
               }}
             />
           </Motion.div>
-          <Motion.p
-            variants={animations.fadeInUp}
-            className="max-w-xl text-base leading-relaxed text-slate-300 sm:text-lg"
-          >
-            {content.subtitle}
-          </Motion.p>
 
           <Motion.div
             variants={animations.fadeInUp}
-            className="max-w-xl rounded-2xl border border-purple-300/25 bg-slate-900/55 p-3.5 sm:p-4"
-            whileHover={animations.hoverGlow}
+            className={`space-y-2 max-w-xl text-base leading-relaxed sm:text-lg ${
+              isDark ? "text-slate-300" : "text-slate-600"
+            }`}
           >
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-purple-300">
-                Live Network Feed
-              </p>
-              <span className="inline-flex items-center gap-2 text-xs font-medium text-cyan-200">
+            <p>{content.subtitle}</p>
+          </Motion.div>
+
+          <Motion.div
+            variants={animations.fadeInUp}
+            className={`max-w-xl rounded-2xl border p-5 sm:p-6 backdrop-blur-md ${
+              isDark
+                ? "border-purple-400/25 bg-gradient-to-br from-slate-900/80 via-purple-900/40 to-slate-950/80"
+                : "border-purple-300/30 bg-gradient-to-br from-white/60 via-purple-50/40 to-white/50"
+            }`}
+            whileHover={{ borderColor: "rgba(168,85,247,0.5)", scale: 1.02 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <p
+                  className={`text-xs font-bold uppercase tracking-[0.2em] ${
+                    isDark ? "text-purple-300" : "text-purple-600"
+                  }`}
+                >
+                  📊 Live Network Feed
+                </p>
+              </div>
+              <span
+                className={`inline-flex items-center gap-2 text-xs font-semibold ${
+                  isDark ? "text-emerald-300" : "text-emerald-600"
+                }`}
+              >
                 <Motion.span
-                  className="h-2 w-2 rounded-full bg-purple-300"
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    isDark ? "bg-emerald-400" : "bg-emerald-500"
+                  }`}
                   animate={{
                     opacity: [0.4, 1, 0.4],
-                    scale: [1, 1.25, 1],
+                    scale: [1, 1.3, 1],
                     boxShadow: [
-                      "0 0 0 rgba(168, 85, 247, 0)",
-                      "0 0 10px rgba(168, 85, 247, 0.6)",
-                      "0 0 0 rgba(168, 85, 247, 0)",
+                      "0 0 0 rgba(16, 185, 129, 0)",
+                      "0 0 12px rgba(16, 185, 129, 0.8)",
+                      "0 0 0 rgba(16, 185, 129, 0)",
                     ],
                   }}
                   transition={{
-                    duration: 1.3,
+                    duration: 1.5,
                     repeat: Number.POSITIVE_INFINITY,
                     ease: "easeInOut",
                   }}
@@ -157,114 +248,158 @@ function Hero({ brand, content, theme }) {
               </span>
             </div>
 
-            <div className="space-y-3">
-              {pulseMetrics.map((metric, index) => (
-                <Motion.div
-                  key={metric.label}
-                  className="space-y-1.5"
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={animations.viewport}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                >
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-300">{metric.label}</span>
-                    <span className="font-semibold text-purple-200">
+            <div className="grid gap-4 sm:grid-cols-3">
+              {pulseMetrics.map((metric, index) => {
+                const IconComponent = metric.icon;
+                return (
+                  <Motion.div
+                    key={metric.label}
+                    className={`rounded-xl border p-3 ${
+                      isDark
+                        ? "border-purple-400/15 bg-slate-900/50"
+                        : "border-purple-300/20 bg-white/40"
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={animations.viewport}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    whileHover={{ y: -4, borderColor: "rgba(168,85,247,0.4)" }}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div
+                        className={`p-2 rounded-lg bg-gradient-to-br ${metric.color} bg-opacity-20`}
+                      >
+                        <IconComponent
+                          size={16}
+                          className={
+                            metric.color.includes("emerald")
+                              ? "text-emerald-400"
+                              : metric.color.includes("purple")
+                                ? "text-purple-400"
+                                : "text-amber-400"
+                          }
+                        />
+                      </div>
+                    </div>
+                    <p
+                      className={`text-xs font-medium mb-1 ${
+                        isDark ? "text-slate-400" : "text-slate-600"
+                      }`}
+                    >
+                      {metric.label}
+                    </p>
+                    <p
+                      className={`text-lg font-bold ${
+                        isDark ? "text-white" : "text-slate-900"
+                      }`}
+                    >
                       {metric.value}
-                    </span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-purple-400/10">
-                    <Motion.span
-                      className="block h-full w-24 rounded-full bg-purple-300/85"
-                      animate={{
-                        x: [-26, 188, -26],
-                        boxShadow: [
-                          "0 0 0 rgba(168, 85, 247, 0)",
-                          "0 0 8px rgba(168, 85, 247, 0.4)",
-                          "0 0 0 rgba(168, 85, 247, 0)",
-                        ],
-                      }}
-                      transition={{
-                        duration: metric.duration,
-                        repeat: Number.POSITIVE_INFINITY,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  </div>
-                </Motion.div>
-              ))}
+                    </p>
+                    <div
+                      className={`mt-2 h-1 overflow-hidden rounded-full ${
+                        isDark ? "bg-slate-800" : "bg-slate-200"
+                      }`}
+                    >
+                      <Motion.span
+                        className={`block h-full w-16 rounded-full bg-gradient-to-r ${metric.color}`}
+                        animate={{
+                          x: [-20, 160, -20],
+                        }}
+                        transition={{
+                          duration: metric.duration,
+                          repeat: Number.POSITIVE_INFINITY,
+                          ease: "easeInOut",
+                        }}
+                      />
+                    </div>
+                  </Motion.div>
+                );
+              })}
             </div>
           </Motion.div>
 
           <Motion.div
             variants={animations.fadeInUp}
-            className="flex flex-wrap gap-3"
+            className="flex flex-wrap gap-3 pt-2"
           >
             <Motion.a
               href="#apps"
-              className="rounded-full bg-purple-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-purple-300"
-              whileHover={animations.hoverLift}
+              className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-7 py-3.5 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-purple-500/50"
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 20px 40px rgba(236, 72, 153, 0.3)",
+              }}
               whileTap={{ scale: 0.95 }}
             >
-              {content.ctaPrimary}
+              🚀 {content.ctaPrimary}
             </Motion.a>
             <Motion.a
               href="#roadmap"
-              className="rounded-full border border-purple-300/35 px-6 py-3 text-sm font-semibold text-purple-200 transition hover:border-purple-300 hover:bg-purple-300/10"
-              whileHover={animations.hoverLift}
+              className={`rounded-full border-2 px-7 py-3.5 text-sm font-bold transition ${
+                isDark
+                  ? "border-purple-400/50 text-purple-200 hover:bg-purple-500/10 hover:border-purple-400"
+                  : "border-purple-400/60 text-purple-700 hover:bg-purple-100 hover:border-purple-500"
+              }`}
+              whileHover={{ scale: 1.05, borderColor: "rgba(168,85,247,1)" }}
               whileTap={{ scale: 0.95 }}
             >
-              {content.ctaSecondary}
-            </Motion.a>
-            <Motion.a
-              href="#pitch-deck"
-              className="rounded-full border border-purple-300/35 px-6 py-3 text-sm font-semibold text-purple-200 transition hover:border-purple-300 hover:bg-purple-300/10"
-              whileHover={animations.hoverLift}
-              whileTap={{ scale: 0.95 }}
-            >
-              {content.ctaTertiary}
+              📋 {content.ctaSecondary}
             </Motion.a>
           </Motion.div>
 
           {content.launchDate && (
             <Motion.div
               variants={animations.fadeInUp}
-              className="mt-4 rounded-lg bg-purple-500/10 border border-purple-500/20 px-4 py-2 inline-block"
-              whileHover={animations.hoverLift}
+              className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 ${
+                isDark
+                  ? "border-purple-500/30 bg-purple-500/10"
+                  : "border-purple-400/40 bg-purple-100/30"
+              }`}
+              whileHover={{ scale: 1.05 }}
             >
-              <p className="text-sm font-semibold text-purple-200">
-                🚀 {content.launchDate}
+              <span className="text-lg">🎯</span>
+              <p
+                className={`text-sm font-semibold ${
+                  isDark ? "text-purple-200" : "text-purple-700"
+                }`}
+              >
+                Launch: {content.launchDate}
               </p>
             </Motion.div>
           )}
 
-          {content.supportingText && (
-            <Motion.p
-              variants={animations.fadeInUp}
-              className="mt-4 text-sm text-slate-400"
-            >
-              {content.supportingText}
-            </Motion.p>
-          )}
-
           <Motion.div
             variants={animations.fadeInUp}
-            className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+            className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-3"
           >
             {content.trustBadges.map((badge, index) => (
               <Motion.div
                 key={badge.label}
-                className="rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3"
-                whileHover={animations.hoverLift}
+                className={`rounded-2xl border p-4 backdrop-blur-sm ${
+                  isDark
+                    ? "border-slate-700/50 bg-gradient-to-br from-slate-900/70 to-slate-950/70"
+                    : "border-slate-300/40 bg-gradient-to-br from-white/50 to-slate-100/50"
+                }`}
+                whileHover={{ scale: 1.05, y: -4 }}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={animations.viewport}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
               >
-                <p className="text-lg font-bold text-purple-200">
+                <p
+                  className={`text-2xl font-black ${
+                    isDark ? "text-white" : "text-slate-900"
+                  }`}
+                >
                   {badge.value}
                 </p>
-                <p className="text-xs text-slate-400">{badge.label}</p>
+                <p
+                  className={`text-xs font-medium ${
+                    isDark ? "text-slate-400" : "text-slate-600"
+                  }`}
+                >
+                  {badge.label}
+                </p>
               </Motion.div>
             ))}
           </Motion.div>
