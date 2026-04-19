@@ -144,7 +144,11 @@ function Audience({ content, isDark = true }) {
           className="space-y-3"
         >
           {items.map((item, itemIndex) => (
-            <Motion.li key={itemIndex} variants={itemVariants} className="flex items-start gap-3">
+            <Motion.li
+              key={itemIndex}
+              variants={itemVariants}
+              className="flex items-start gap-3"
+            >
               <div
                 className={`mt-1.5 h-2 w-2 rounded-full ${colors.bullet} shrink-0`}
               />
@@ -203,7 +207,12 @@ function Audience({ content, isDark = true }) {
             className="mt-10 grid gap-6 lg:grid-cols-2"
           >
             {renderListSection("Who This Is For", content.whoFor, "whoFor", 0)}
-            {renderListSection("Getting Started", content.gettingStarted, "gettingStarted", 1)}
+            {renderListSection(
+              "Getting Started",
+              content.gettingStarted,
+              "gettingStarted",
+              1,
+            )}
           </Motion.div>
 
           {/* Middle Section: Three Columns */}
@@ -214,9 +223,24 @@ function Audience({ content, isDark = true }) {
             variants={containerVariants}
             className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
           >
-            {renderListSection("What to Expect", content.whatToExpect, "whatToExpect", 0)}
-            {renderListSection("Transparency", content.transparency, "transparency", 1)}
-            {renderListSection("Risk Awareness", content.riskAwareness, "riskAwareness", 2)}
+            {renderListSection(
+              "What to Expect",
+              content.whatToExpect,
+              "whatToExpect",
+              0,
+            )}
+            {renderListSection(
+              "Transparency",
+              content.transparency,
+              "transparency",
+              1,
+            )}
+            {renderListSection(
+              "Risk Awareness",
+              content.riskAwareness,
+              "riskAwareness",
+              2,
+            )}
           </Motion.div>
 
           {/* FAQ Section */}
@@ -288,9 +312,7 @@ function Audience({ content, isDark = true }) {
                         <ChevronDown
                           size={20}
                           className={
-                            isDark
-                              ? "text-purple-400"
-                              : "text-purple-600"
+                            isDark ? "text-purple-400" : "text-purple-600"
                           }
                         />
                       </Motion.div>
@@ -309,9 +331,7 @@ function Audience({ content, isDark = true }) {
                   >
                     <div
                       className={`rounded-b-xl border border-t-0 border-slate-700/50 p-4 ${
-                        isDark
-                          ? "bg-slate-800/20"
-                          : "bg-slate-100/20"
+                        isDark ? "bg-slate-800/20" : "bg-slate-100/20"
                       }`}
                     >
                       <p
