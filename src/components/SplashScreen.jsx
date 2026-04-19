@@ -156,8 +156,8 @@ function SplashScreen({ onComplete }) {
 
               {/* Logo Container */}
               <div className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-950 rounded-full w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center border border-purple-500/30 backdrop-blur-sm">
-                <span className="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300">
-                  ✨
+                <span className="text-5xl sm:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300">
+                  X
                 </span>
               </div>
             </div>
@@ -189,7 +189,10 @@ function SplashScreen({ onComplete }) {
         </Motion.p>
 
         {/* Loading Indicator */}
-        <Motion.div variants={itemVariants} className="flex justify-center gap-2">
+        <Motion.div
+          variants={itemVariants}
+          className="flex justify-center gap-2"
+        >
           {[0, 1, 2].map((index) => (
             <Motion.div
               key={index}
@@ -222,7 +225,11 @@ function SplashScreen({ onComplete }) {
         className="absolute top-10 right-10 w-20 h-20 border border-purple-500/20 rounded-lg"
         animate={{
           rotate: [0, 90, 180, 270, 360],
-          borderColor: ["rgba(168, 85, 247, 0.2)", "rgba(236, 72, 153, 0.3)", "rgba(168, 85, 247, 0.2)"],
+          borderColor: [
+            "rgba(168, 85, 247, 0.2)",
+            "rgba(236, 72, 153, 0.3)",
+            "rgba(168, 85, 247, 0.2)",
+          ],
         }}
         transition={{
           duration: 8,
