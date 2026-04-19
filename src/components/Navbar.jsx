@@ -89,7 +89,7 @@ function Navbar({ brand, links, activeSection, theme, onThemeToggle }) {
       <Motion.div
         aria-hidden="true"
         style={{ scaleX: smoothProgress }}
-        className={`pointer-events-none fixed left-0 top-0 z-70 h-0.5 w-full origin-left ${
+        className={`pointer-events-none fixed left-0 top-0 z-40 h-0.5 w-full origin-left ${
           isDark
             ? "bg-purple-300 shadow-[0_0_14px_rgba(168,85,247,0.9)]"
             : "bg-purple-500 shadow-[0_0_14px_rgba(139,69,193,0.7)]"
@@ -99,7 +99,7 @@ function Navbar({ brand, links, activeSection, theme, onThemeToggle }) {
         variants={navAnimation}
         initial="hidden"
         animate="visible"
-        className={`sticky top-0 z-50 border-b backdrop-blur-xl ${
+        className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${
           isDark
             ? "border-purple-500/20 bg-slate-950/85"
             : "border-purple-200/40 bg-white/80"
