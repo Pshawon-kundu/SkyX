@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, Suspense, lazy } from "react";
+import { useEffect, useMemo, useState, Suspense, lazy } from "react";
 import { motion as Motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
@@ -42,64 +42,12 @@ function Home({ content }) {
   });
 
   const [activeSection, setActiveSection] = useState("home");
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const cursorRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem("skyx-theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    let lastUpdateTime = 0;
-    const throttleDelay = 16; // ~60fps
-
-    const handleMouseMove = (e) => {
-      const now = Date.now();
-      if (now - lastUpdateTime < throttleDelay) return;
-      lastUpdateTime = now;
-
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate(${e.clientX - 15}px, ${e.clientY - 15}px)`;
-      }
-    };
-
-    const handleMouseEnter = () => {
-      setIsHovering(true);
-      if (cursorRef.current) {
-        cursorRef.current.classList.add("hover");
-      }
-    };
-
-    const handleMouseLeave = () => {
-      setIsHovering(false);
-      if (cursorRef.current) {
-        cursorRef.current.classList.remove("hover");
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
-    // Add hover listeners to interactive elements
-    const interactiveElements = document.querySelectorAll(
-      "button, a, input, textarea, select, [role='button']",
-    );
-
-    interactiveElements.forEach((el) => {
-      el.addEventListener("mouseenter", handleMouseEnter, { passive: true });
-      el.addEventListener("mouseleave", handleMouseLeave, { passive: true });
-    });
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      interactiveElements.forEach((el) => {
-        el.removeEventListener("mouseenter", handleMouseEnter);
-        el.removeEventListener("mouseleave", handleMouseLeave);
-      });
-    };
-  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -136,9 +84,6 @@ function Home({ content }) {
     >
       {/* Animated background */}
       <AnimatedBackground isDark={theme === "dark"} />
-
-      {/* Custom cursor */}
-      <div ref={cursorRef} className="cursor" />
 
       {/* Content overlay */}
       <div className="relative z-10">

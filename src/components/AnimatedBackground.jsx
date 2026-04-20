@@ -3,15 +3,13 @@ import React from "react";
 
 const AnimatedBackground = React.memo(({ isDark }) => {
   const floatingOrbs = [
-    { id: 1, size: 300, duration: 20, delay: 0, x: "10%", y: "20%" },
-    { id: 2, size: 250, duration: 25, delay: 5, x: "80%", y: "30%" },
-    { id: 3, size: 200, duration: 30, delay: 10, x: "50%", y: "70%" },
-    { id: 4, size: 280, duration: 22, delay: 2, x: "20%", y: "60%" },
+    { id: 1, size: 300, duration: 25, delay: 0, x: "10%", y: "20%" },
+    { id: 2, size: 250, duration: 30, delay: 8, x: "80%", y: "30%" },
   ];
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
-      {/* Base gradient background */}
+    <div className="pointer-events-none fixed inset-0 -z-20 overflow-hidden will-change-transform">
+      {/* Base gradient background - static */}
       <div
         className={`absolute inset-0 ${
           isDark
@@ -20,42 +18,43 @@ const AnimatedBackground = React.memo(({ isDark }) => {
         }`}
       />
 
-      {/* Animated gradient layers */}
+      {/* Single animated gradient layer */}
       <Motion.div
         className={`absolute inset-0 ${
           isDark
-            ? "bg-gradient-to-t from-purple-900/20 via-transparent to-transparent"
-            : "bg-gradient-to-t from-purple-300/10 via-transparent to-transparent"
+            ? "bg-gradient-to-t from-purple-900/15 via-transparent to-transparent"
+            : "bg-gradient-to-t from-purple-300/8 via-transparent to-transparent"
         }`}
         animate={{
-          opacity: [0.3, 0.6, 0.3],
+          opacity: [0.4, 0.55, 0.4],
         }}
         transition={{
-          duration: 8,
+          duration: 10,
           repeat: Infinity,
           ease: "easeInOut",
         }}
       />
 
-      {/* Floating gradient orbs */}
+      {/* Reduced floating gradient orbs */}
       {floatingOrbs.map((orb) => (
         <Motion.div
           key={orb.id}
           className={`absolute rounded-full mix-blend-screen filter blur-3xl ${
             isDark
-              ? "bg-gradient-to-br from-purple-500/30 to-pink-500/10"
-              : "bg-gradient-to-br from-purple-400/20 to-pink-300/10"
+              ? "bg-gradient-to-br from-purple-500/25 to-pink-500/8"
+              : "bg-gradient-to-br from-purple-400/15 to-pink-300/8"
           }`}
           style={{
             width: orb.size,
             height: orb.size,
             left: orb.x,
             top: orb.y,
+            willChange: "transform",
           }}
           animate={{
-            x: [0, 50, -50, 0],
-            y: [0, 100, -100, 0],
-            scale: [1, 1.2, 0.9, 1],
+            x: [0, 40, -40, 0],
+            y: [0, 80, -80, 0],
+            scale: [1, 1.15, 0.95, 1],
           }}
           transition={{
             duration: orb.duration,
@@ -65,38 +64,6 @@ const AnimatedBackground = React.memo(({ isDark }) => {
           }}
         />
       ))}
-
-      {/* Animated grid pattern overlay */}
-      <Motion.div
-        className={`absolute inset-0 opacity-20 ${
-          isDark ? "bg-grid-pattern-dark" : "bg-grid-pattern-light"
-        }`}
-        animate={{
-          backgroundPosition: ["0px 0px", "50px 50px"],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-      />
-
-      {/* Radial glow from center */}
-      <Motion.div
-        className={`absolute inset-0 ${
-          isDark
-            ? "bg-radial-gradient from-purple-600/10 to-transparent"
-            : "bg-radial-gradient from-purple-400/5 to-transparent"
-        }`}
-        animate={{
-          opacity: [0.2, 0.4, 0.2],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
     </div>
   );
 });

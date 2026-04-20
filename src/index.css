@@ -41,7 +41,7 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: none;
+  cursor: auto;
   position: relative;
 }
 
@@ -61,57 +61,6 @@ select {
   perspective: 1000px;
 }
 
-.cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 30px;
-  height: 30px;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: all 0.1s ease-out;
-  will-change: transform;
-}
-
-.cursor::before,
-.cursor::after {
-  content: "";
-  position: absolute;
-  background: #a855f7;
-  box-shadow:
-    0 0 15px #a855f7,
-    0 0 30px rgba(168, 85, 247, 0.5),
-    inset 0 0 15px rgba(168, 85, 247, 0.3);
-}
-
-.cursor::before {
-  width: 3px;
-  height: 30px;
-  left: 50%;
-  top: 0%;
-  transform: translateX(-50%);
-  border-radius: 2px;
-}
-
-.cursor::after {
-  width: 30px;
-  height: 3px;
-  left: 0%;
-  top: 50%;
-  transform: translateY(-50%);
-  border-radius: 2px;
-}
-
-.cursor.hover::before,
-.cursor.hover::after {
-  box-shadow:
-    0 0 25px #ec4899,
-    0 0 40px rgba(236, 72, 153, 0.6),
-    inset 0 0 20px rgba(236, 72, 153, 0.4);
-  background: #ec4899;
-}
-
 /* Grid pattern background */
 .bg-grid-pattern-dark {
   background-image:
@@ -119,34 +68,6 @@ select {
     linear-gradient(90deg, rgba(168, 85, 247, 0.08) 1px, transparent 1px);
   background-size: 50px 50px;
   background-position: 0 0;
-  animation: grid-shift 20s linear infinite;
-}
-
-.bg-grid-pattern-light {
-  background-image:
-    linear-gradient(rgba(139, 69, 193, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 69, 193, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  background-position: 0 0;
-  animation: grid-shift 20s linear infinite;
-}
-
-@keyframes grid-shift {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 50px 50px;
-  }
-}
-
-/* Radial gradient background */
-.bg-radial-gradient {
-  background: radial-gradient(
-    ellipse at center,
-    var(--gradient-from) 0%,
-    var(--gradient-to) 100%
-  );
 }
 
 /* Smooth hover effects for interactive elements */
