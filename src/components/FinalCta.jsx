@@ -13,8 +13,8 @@ function FinalCta({ content, isDark = true }) {
           transition={{ duration: 0.45 }}
           className={`rounded-3xl border p-8 sm:p-10 text-center ${
             isDark
-              ? "border-purple-400/20 bg-gradient-to-br from-purple-600/20 to-slate-900/70"
-              : "border-purple-300/40 bg-gradient-to-br from-purple-200/30 to-purple-50/50"
+              ? "border-purple-400/20 bg-linear-to-br from-purple-600/20 to-slate-900/70"
+              : "border-purple-300/40 bg-linear-to-br from-purple-200/30 to-purple-50/50"
           }`}
         >
           <h2
