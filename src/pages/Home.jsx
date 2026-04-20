@@ -49,6 +49,10 @@ function Home({ content }) {
     window.localStorage.setItem("skyx-theme", theme);
   }, [theme]);
 
+  const handleNavClick = (sectionId) => {
+    setActiveSection(sectionId);
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -91,6 +95,7 @@ function Home({ content }) {
           brand={content.brand}
           links={content.navLinks}
           activeSection={activeSection}
+          onNavClick={handleNavClick}
           theme={theme}
           onThemeToggle={() =>
             setTheme((currentTheme) =>

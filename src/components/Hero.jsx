@@ -1,31 +1,32 @@
 import { motion as Motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { animations } from "../data/animations";
 import Countdown from "./Countdown";
 import AirdropAnimation from "./AirdropAnimation";
 import { TrendingUp, Zap, Shield } from "lucide-react";
 
+// Bitcoin-themed metrics with crypto vibes
 const pulseMetrics = [
   {
     label: "Gaming Market",
     value: "$200B+",
     duration: 2.8,
     icon: TrendingUp,
-    color: "from-emerald-500 to-cyan-500",
+    color: "from-amber-500 to-orange-500",
   },
   {
     label: "Launch Date",
     value: "April 25",
     duration: 2.2,
     icon: Zap,
-    color: "from-purple-500 to-pink-500",
+    color: "from-amber-600 to-orange-600",
   },
   {
     label: "Early Access",
     value: "Limited",
     duration: 3.1,
     icon: Shield,
-    color: "from-amber-500 to-orange-500",
+    color: "from-amber-500 to-yellow-500",
   },
 ];
 
@@ -109,7 +110,6 @@ const swappingWordVariants = {
 function Hero({ brand, content, theme }) {
   const [swappingIndex, setSwappingIndex] = useState(0);
 
-  // Dynamic word variations for swapping effect
   const dynamicWords = [
     "Smarter Gaming Economy",
     "Next-Gen Gaming Universe",
@@ -119,7 +119,6 @@ function Hero({ brand, content, theme }) {
 
   const isDark = theme === "dark";
 
-  // Rotate through dynamic words every 4 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setSwappingIndex((prev) => (prev + 1) % dynamicWords.length);
@@ -127,18 +126,15 @@ function Hero({ brand, content, theme }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Bitcoin-themed gradients
   const heroBackdrop = !isDark
-    ? "bg-[radial-gradient(circle_at_15%_20%,rgba(168,85,247,0.2),transparent_38%),radial-gradient(circle_at_82%_16%,rgba(139,69,193,0.18),transparent_42%),linear-gradient(180deg,#f6fbff_0%,#edf6ff_55%,#e2f3ff_100%)]"
-    : "bg-[radial-gradient(circle_at_15%_20%,rgba(168,85,247,0.18),transparent_40%),radial-gradient(circle_at_80%_18%,rgba(139,69,193,0.12),transparent_45%),linear-gradient(180deg,#020617_0%,#020617_60%,#030A15_100%)]";
+    ? "bg-[radial-gradient(circle_at_15%_20%,rgba(217,119,6,0.15),transparent_38%),radial-gradient(circle_at_82%_16%,rgba(180,83,9,0.12),transparent_42%),linear-gradient(180deg,#f6fbff_0%,#fef5e7_55%,#fffbf0_100%)]"
+    : "bg-[radial-gradient(circle_at_15%_20%,rgba(217,119,6,0.12),transparent_40%),radial-gradient(circle_at_80%_18%,rgba(180,83,9,0.08),transparent_45%),linear-gradient(180deg,#020617_0%,#1a0f00_60%,#030A15_100%)]";
 
-  const innerSurface = isDark
-    ? "bg-gradient-to-br from-slate-900 via-slate-950 to-purple-950/40"
-    : "bg-gradient-to-br from-purple-50 via-violet-50 to-purple-100";
-
-  const lineStroke = isDark ? "rgba(168,85,247,0.55)" : "rgba(139,69,193,0.72)";
+  const lineStroke = isDark ? "rgba(217,119,6,0.5)" : "rgba(180,83,9,0.65)";
   const nodeClass = isDark
-    ? "border-purple-200/65 bg-purple-300/45 shadow-[0_0_14px_rgba(168,85,247,0.85)]"
-    : "border-purple-700/55 bg-purple-500/65 shadow-[0_0_10px_rgba(139,69,193,0.5)]";
+    ? "border-amber-300/60 bg-amber-500/40 shadow-[0_0_14px_rgba(217,119,6,0.8)]"
+    : "border-amber-700/55 bg-amber-400/60 shadow-[0_0_10px_rgba(180,83,9,0.45)]";
 
   const titleWords = content.title.split(" ");
 
@@ -158,10 +154,10 @@ function Hero({ brand, content, theme }) {
         >
           <Motion.p
             variants={animations.fadeInUp}
-            className="inline-flex rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-purple-200 backdrop-blur-sm"
-            whileHover={{ scale: 1.05, borderColor: "rgba(168,85,247,0.6)" }}
+            className="inline-flex rounded-full border border-amber-500/40 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-amber-200 backdrop-blur-sm"
+            whileHover={{ scale: 1.05, borderColor: "rgba(217,119,6,0.8)" }}
           >
-            ✨ {brand.name} • {brand.ticker}
+            ₿ {brand.name} • {brand.ticker}
           </Motion.p>
 
           <Motion.div
@@ -228,7 +224,7 @@ function Hero({ brand, content, theme }) {
                 }}
                 className="w-full"
               >
-                <span className="inline-block text-4xl font-black leading-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
+                <span className="inline-block text-4xl font-black leading-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-amber-300 via-orange-400 to-amber-300 bg-clip-text text-transparent">
                   {dynamicWords[swappingIndex]}
                 </span>
               </Motion.div>
@@ -236,16 +232,16 @@ function Hero({ brand, content, theme }) {
           </Motion.div>
           <Motion.div
             variants={animations.fadeInUp}
-            className="h-1.5 w-40 overflow-hidden rounded-full bg-gradient-to-r from-purple-400/20 to-pink-400/20"
+            className="h-1.5 w-40 overflow-hidden rounded-full bg-gradient-to-r from-amber-400/20 to-orange-400/20"
           >
             <Motion.span
-              className="block h-full w-20 rounded-full bg-gradient-to-r from-purple-400 to-pink-400"
+              className="block h-full w-20 rounded-full bg-gradient-to-r from-amber-400 to-orange-500"
               animate={{
                 x: [-28, 118, -28],
                 boxShadow: [
-                  "0 0 0 rgba(168, 85, 247, 0)",
-                  "0 0 24px rgba(236, 72, 153, 0.6)",
-                  "0 0 0 rgba(168, 85, 247, 0)",
+                  "0 0 0 rgba(217, 119, 6, 0)",
+                  "0 0_24px rgba(217, 119, 6, 0.8)",
+                  "0 0 0 rgba(217, 119, 6, 0)",
                 ],
               }}
               transition={{
@@ -269,30 +265,30 @@ function Hero({ brand, content, theme }) {
             variants={animations.fadeInUp}
             className={`max-w-xl rounded-2xl border p-5 sm:p-6 backdrop-blur-md ${
               isDark
-                ? "border-purple-400/25 bg-gradient-to-br from-slate-900/80 via-purple-900/40 to-slate-950/80"
-                : "border-purple-300/30 bg-gradient-to-br from-white/60 via-purple-50/40 to-white/50"
+                ? "border-amber-400/25 bg-gradient-to-br from-slate-900/80 via-amber-950/20 to-slate-950/80"
+                : "border-amber-300/30 bg-gradient-to-br from-white/60 via-amber-50/40 to-white/50"
             }`}
-            whileHover={{ borderColor: "rgba(168,85,247,0.5)", scale: 1.02 }}
+            whileHover={{ borderColor: "rgba(217,119,6,0.5)", scale: 1.02 }}
             transition={{ duration: 0.3 }}
           >
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <p
                   className={`text-xs font-bold uppercase tracking-[0.2em] ${
-                    isDark ? "text-purple-300" : "text-purple-600"
+                    isDark ? "text-amber-300" : "text-amber-700"
                   }`}
                 >
-                  📊 Live Network Feed
+                  ₿ Live Network Feed
                 </p>
               </div>
               <span
                 className={`inline-flex items-center gap-2 text-xs font-semibold ${
-                  isDark ? "text-emerald-300" : "text-emerald-600"
+                  isDark ? "text-green-300" : "text-green-600"
                 }`}
               >
                 <Motion.span
                   className={`h-2.5 w-2.5 rounded-full ${
-                    isDark ? "bg-emerald-400" : "bg-emerald-500"
+                    isDark ? "bg-green-400" : "bg-green-500"
                   }`}
                   animate={{
                     opacity: [0.4, 1, 0.4],
@@ -389,10 +385,10 @@ function Hero({ brand, content, theme }) {
           >
             <Motion.a
               href="#apps"
-              className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-7 py-3.5 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-purple-500/50"
+              className="rounded-full bg-gradient-to-r from-amber-500 to-orange-600 px-7 py-3.5 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-amber-500/50"
               whileHover={{
                 scale: 1.05,
-                boxShadow: "0 20px 40px rgba(236, 72, 153, 0.3)",
+                boxShadow: "0 20px 40px rgba(217, 119, 6, 0.4)",
               }}
               whileTap={{ scale: 0.95 }}
             >
@@ -402,10 +398,10 @@ function Hero({ brand, content, theme }) {
               href="#roadmap"
               className={`rounded-full border-2 px-7 py-3.5 text-sm font-bold transition ${
                 isDark
-                  ? "border-purple-400/50 text-purple-200 hover:bg-purple-500/10 hover:border-purple-400"
-                  : "border-purple-400/60 text-purple-700 hover:bg-purple-100 hover:border-purple-500"
+                  ? "border-amber-400/60 text-amber-200 hover:bg-amber-500/10 hover:border-amber-400"
+                  : "border-amber-500/70 text-amber-700 hover:bg-amber-100 hover:border-amber-600"
               }`}
-              whileHover={{ scale: 1.05, borderColor: "rgba(168,85,247,1)" }}
+              whileHover={{ scale: 1.05, borderColor: "rgba(217,119,6,1)" }}
               whileTap={{ scale: 0.95 }}
             >
               📋 {content.ctaSecondary}
@@ -417,15 +413,15 @@ function Hero({ brand, content, theme }) {
               variants={animations.fadeInUp}
               className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 ${
                 isDark
-                  ? "border-purple-500/30 bg-purple-500/10"
-                  : "border-purple-400/40 bg-purple-100/30"
+                  ? "border-amber-500/30 bg-amber-500/10"
+                  : "border-amber-400/40 bg-amber-100/30"
               }`}
               whileHover={{ scale: 1.05 }}
             >
               <span className="text-lg">🎯</span>
               <p
                 className={`text-sm font-semibold ${
-                  isDark ? "text-purple-200" : "text-purple-700"
+                  isDark ? "text-amber-200" : "text-amber-700"
                 }`}
               >
                 Launch: {content.launchDate}
@@ -569,4 +565,4 @@ function Hero({ brand, content, theme }) {
   );
 }
 
-export default Hero;
+export default memo(Hero);

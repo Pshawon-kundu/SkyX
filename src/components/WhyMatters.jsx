@@ -64,8 +64,8 @@ function WhyMatters({ content, isDark }) {
           variants={animations.staggerContainer}
           className={`rounded-3xl border backdrop-blur-xl p-8 sm:p-12 shadow-2xl ${
             isDark
-              ? "border-purple-400/30 bg-linear-to-br from-slate-900/80 via-slate-800/60 to-slate-900/80"
-              : "border-purple-300/40 bg-linear-to-br from-purple-50/60 via-white/80 to-purple-50/60"
+              ? "border-purple-400/30 bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-slate-900/80"
+              : "border-purple-300/40 bg-gradient-to-br from-purple-50/60 via-white/80 to-purple-50/60"
           }`}
         >
           {/* Header */}
@@ -77,7 +77,7 @@ function WhyMatters({ content, isDark }) {
             >
               {content.title}
             </h2>
-            <div className="h-1 w-20 bg-linear-to-r from-red-400 via-purple-400 to-green-400 rounded-full" />
+            <div className="h-1 w-20 bg-gradient-to-r from-red-400 via-purple-400 to-green-400 rounded-full" />
           </Motion.div>
 
           {/* Tab Toggle for Mobile/Tablet */}
@@ -156,7 +156,7 @@ function WhyMatters({ content, isDark }) {
                     >
                       {/* Animated border glow */}
                       <div
-                        className={`absolute inset-0 bg-linear-to-r from-red-400/0 via-red-400/0 to-red-400/0 group-hover:from-red-400/20 group-hover:via-red-400/40 group-hover:to-red-400/20 transition-all duration-300 opacity-0 group-hover:opacity-100 ${
+                        className={`absolute inset-0 bg-gradient-to-r from-red-400/0 via-red-400/0 to-red-400/0 group-hover:from-red-400/20 group-hover:via-red-400/40 group-hover:to-red-400/20 transition-all duration-300 opacity-0 group-hover:opacity-100 ${
                           isDark ? "" : "opacity-50"
                         }`}
                       />
@@ -235,7 +235,7 @@ function WhyMatters({ content, isDark }) {
                     >
                       {/* Animated border glow */}
                       <div
-                        className={`absolute inset-0 bg-linear-to-r from-green-400/0 via-green-400/0 to-green-400/0 group-hover:from-green-400/20 group-hover:via-green-400/40 group-hover:to-green-400/20 transition-all duration-300 opacity-0 group-hover:opacity-100 ${
+                        className={`absolute inset-0 bg-gradient-to-r from-green-400/0 via-green-400/0 to-green-400/0 group-hover:from-green-400/20 group-hover:via-green-400/40 group-hover:to-green-400/20 transition-all duration-300 opacity-0 group-hover:opacity-100 ${
                           isDark ? "" : "opacity-50"
                         }`}
                       />
@@ -375,7 +375,7 @@ function WhyMatters({ content, isDark }) {
           {/* Interactive Insight Box */}
           <Motion.div
             variants={animations.fadeInUp}
-            className="mt-10 p-6 rounded-xl bg-linear-to-r from-purple-500/10 via-pink-500/5 to-purple-500/10 border border-purple-400/30 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300 cursor-pointer group"
+            className="mt-10 p-6 rounded-xl bg-gradient-to-r from-purple-500/10 via-pink-500/5 to-purple-500/10 border border-purple-400/30 backdrop-blur-sm hover:border-purple-400/50 transition-all duration-300 cursor-pointer group"
           >
             <div className="flex items-start gap-3">
               <Lightbulb className="w-6 h-6 shrink-0 text-purple-400 mt-0.5" />

@@ -52,8 +52,8 @@ function Ecosystem({
               variants={animations.staggerItem}
               className={`rounded-3xl border group cursor-pointer p-7 shadow-[0_0_45px_rgba(168,85,247,0.08)] ${
                 isDark
-                  ? "border-purple-400/20 bg-linear-to-br from-slate-900 to-slate-950"
-                  : "border-purple-300/40 bg-linear-to-br from-purple-50 to-purple-100/50"
+                  ? "border-purple-400/20 bg-gradient-to-br from-slate-900 to-slate-950"
+                  : "border-purple-300/40 bg-gradient-to-br from-purple-50 to-purple-100/50"
               }`}
               whileHover={animations.hoverLift}
               whileTap={{ scale: 0.98 }}
