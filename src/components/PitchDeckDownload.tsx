@@ -1,43 +1,16 @@
 import React, { useState } from "react";
-import { motion as Motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Download, Eye, FileText, AlertCircle } from "lucide-react";
 
 interface PitchDeckDownloadProps {
-  /**
-   * File path to the PDF (default: /SkyX.pdf)
-   */
   filePath?: string;
-  /**
-   * Custom title for the card
-   */
   title?: string;
-  /**
-   * Custom description
-   */
   description?: string;
-  /**
-   * Show file size (default: true)
-   */
   showFileSize?: boolean;
-  /**
-   * Custom file size text
-   */
   fileSize?: string;
-  /**
-   * Callback when download is triggered
-   */
   onDownload?: () => void;
-  /**
-   * Callback when preview is triggered
-   */
   onPreview?: () => void;
-  /**
-   * Whether to show error state
-   */
   showError?: boolean;
-  /**
-   * Custom error message
-   */
   errorMessage?: string;
 }
 
@@ -55,41 +28,74 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
 
-  const handleDownload = async () => {
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
       setIsDownloading(true);
+      console.log("🔽 Download started for:", filePath);
       onDownload?.();
 
-      // Create a temporary anchor element for download
+      const response = await fetch(filePath);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = filePath;
+      link.href = url;
       link.download = "SkyX-Pitch-Deck.pdf";
+      link.style.display = "none";
       document.body.appendChild(link);
+
+      console.log("📌 Triggering download...");
       link.click();
-      document.body.removeChild(link);
+
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        console.log("✅ Download completed");
+      }, 100);
     } catch (error) {
-      console.error("Download failed:", error);
+      console.error("❌ Download failed:", error);
+      alert("Download failed. Please try again.");
     } finally {
       setIsDownloading(false);
     }
   };
 
-  const handlePreview = () => {
+  const handlePreview = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
+      console.log("👁️ Preview opened for:", filePath);
       onPreview?.();
-      window.open(filePath, "_blank", "noopener,noreferrer");
       setIsPreviewing(true);
 
-      // Reset preview state after a delay
+      const newTab = window.open(filePath, "_blank");
+      if (!newTab) {
+        alert("Please allow popups to preview the PDF");
+      }
+
       setTimeout(() => setIsPreviewing(false), 500);
     } catch (error) {
-      console.error("Preview failed:", error);
+      console.error("❌ Preview failed:", error);
+      alert("Preview failed. Please try again.");
     }
+  };
+
+  const handleTitleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await handleDownload(e);
   };
 
   if (showError) {
     return (
-      <Motion.div
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -115,12 +121,12 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
             </div>
           </div>
         </div>
-      </Motion.div>
+      </motion.div>
     );
   }
 
   return (
-    <Motion.div
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -129,7 +135,7 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
     >
       <div className="relative group rounded-xl overflow-hidden">
         {/* Animated glow background on hover */}
-        <Motion.div
+        <motion.div
           className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-cyan-600 to-purple-600 rounded-xl opacity-0 group-hover:opacity-100 blur transition duration-500"
           animate={{
             backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
@@ -150,7 +156,7 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
           <div className="flex items-start gap-4 mb-6">
             {/* Icon container */}
             <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/20 to-cyan-500/20 border border-purple-400/30 group-hover:border-purple-400/60 transition duration-300">
-              <Motion.div
+              <motion.div
                 animate={{
                   y: [0, -4, 0],
                 }}
@@ -161,22 +167,20 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
                 }}
               >
                 <FileText className="w-6 h-6 text-cyan-400 group-hover:text-purple-300 transition duration-300" />
-              </Motion.div>
+              </motion.div>
             </div>
 
             {/* Title and description */}
             <div className="flex-1">
-              <Motion.button
-                onClick={handleDownload}
+              <button
+                onClick={handleTitleClick}
                 disabled={isDownloading}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="text-left w-full group/title cursor-pointer mb-2"
+                className="text-left w-full cursor-pointer mb-2 bg-transparent border-none p-0 hover:opacity-80 transition duration-200 disabled:opacity-50"
               >
-                <h2 className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-300 via-cyan-300 to-purple-300 group-hover/title:from-purple-200 group-hover/title:via-cyan-200 group-hover/title:to-purple-200 bg-clip-text text-transparent transition duration-300">
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-300 via-cyan-300 to-purple-300 hover:from-purple-200 hover:via-cyan-200 hover:to-purple-200 bg-clip-text text-transparent transition duration-300">
                   {title}
                 </h2>
-              </Motion.button>
+              </button>
               <p className="text-sm sm:text-base text-slate-400 group-hover:text-slate-300 transition duration-300">
                 {description}
               </p>
@@ -193,82 +197,75 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
             </div>
           )}
 
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Download Button */}
-            <Motion.button
-              onClick={handleDownload}
-              disabled={isDownloading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group/btn relative flex items-center justify-center gap-2 px-6 py-3 font-bold uppercase tracking-wider text-white rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            {/* Download Button - Ultra Simple */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleDownload(e);
+              }}
+              style={{ cursor: "pointer" }}
+              className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 hover:to-blue-600 text-white font-bold rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 justify-center"
             >
-              {/* Button glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg opacity-75 group-hover/btn:opacity-100 blur transition duration-300 group-hover/btn:blur-md" />
+              {isDownloading ? (
+                <>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                  >
+                    <Download size={20} />
+                  </motion.div>
+                  <span>Downloading...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={20} />
+                  <span>Download Pitch Deck</span>
+                </>
+              )}
+            </button>
 
-              {/* Button content */}
-              <div className="relative flex items-center justify-center gap-2 px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-700 group-hover/btn:from-cyan-500 group-hover/btn:to-blue-600 rounded-lg transition duration-300">
-                {isDownloading ? (
-                  <>
-                    <Motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                    >
-                      <Download size={18} />
-                    </Motion.div>
-                    <span>Downloading...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download size={18} />
-                    <span>Download</span>
-                  </>
-                )}
-              </div>
-            </Motion.button>
-
-            {/* Preview Button */}
-            <Motion.button
-              onClick={handlePreview}
-              disabled={isPreviewing}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group/btn relative flex items-center justify-center gap-2 px-6 py-3 font-bold uppercase tracking-wider rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            {/* Preview Button - Ultra Simple */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePreview(e);
+              }}
+              style={{ cursor: "pointer" }}
+              className="px-8 py-4 bg-slate-900/50 border-2 border-purple-400/50 hover:border-purple-300 hover:bg-slate-900/70 text-purple-200 hover:text-purple-100 font-bold rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 justify-center"
             >
-              {/* Button border glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg opacity-0 group-hover/btn:opacity-100 blur transition duration-300 group-hover/btn:blur-md" />
-
-              {/* Button content */}
-              <div className="relative flex items-center justify-center gap-2 px-5 py-2 bg-slate-900/50 border-2 border-purple-400/50 group-hover/btn:border-purple-300 group-hover/btn:bg-slate-900/70 rounded-lg transition duration-300 text-purple-200 group-hover/btn:text-purple-100">
-                {isPreviewing ? (
-                  <>
-                    <Motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{
-                        duration: 0.6,
-                        repeat: Infinity,
-                      }}
-                    >
-                      <Eye size={18} />
-                    </Motion.div>
-                    <span>Opening...</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye size={18} />
-                    <span>Preview</span>
-                  </>
-                )}
-              </div>
-            </Motion.button>
+              {isPreviewing ? (
+                <>
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                    }}
+                  >
+                    <Eye size={20} />
+                  </motion.div>
+                  <span>Opening...</span>
+                </>
+              ) : (
+                <>
+                  <Eye size={20} />
+                  <span>Preview PDF</span>
+                </>
+              )}
+            </button>
           </div>
 
           {/* Bottom accent line */}
-          <Motion.div
+          <motion.div
             className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-purple-500 via-cyan-500 to-purple-500 rounded-b-xl"
             animate={{
               scaleX: [0.2, 1, 0.2],
@@ -282,7 +279,7 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
           />
         </div>
       </div>
-    </Motion.div>
+    </motion.div>
   );
 };
 

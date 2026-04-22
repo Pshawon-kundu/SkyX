@@ -18,6 +18,7 @@ const Ecosystem = lazy(() => import("../components/Ecosystem"));
 const DataAnalysis = lazy(() => import("../components/DataAnalysis"));
 const Audience = lazy(() => import("../components/Audience"));
 const PitchDeck = lazy(() => import("../components/PitchDeck"));
+const PitchDeckDownload = lazy(() => import("../components/PitchDeckDownload"));
 const Roadmap = lazy(() => import("../components/Roadmap"));
 const Trust = lazy(() => import("../components/Trust"));
 const Profile = lazy(() => import("../components/profile/UserProfile"));
@@ -168,6 +169,13 @@ function Home({ content }) {
             <PitchDeck content={content.pitchDeck} isDark={theme === "dark"} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
+            <section id="pitch-deck-download" className="py-12 sm:py-16">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <PitchDeckDownload />
+              </div>
+            </section>
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
             <Roadmap content={content.roadmap} isDark={theme === "dark"} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
@@ -193,49 +201,6 @@ function Home({ content }) {
           <Suspense fallback={<div className="min-h-96" />}>
             <FinalCta content={content.finalCta} isDark={theme === "dark"} />
           </Suspense>
-
-          <section
-            id="about"
-            className={`py-16 sm:py-20 ${
-              theme === "dark" ? "bg-slate-900" : "bg-purple-50"
-            }`}
-          >
-            <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
-              <Motion.div
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.45 }}
-                className={`rounded-3xl border p-8 sm:p-10 ${
-                  theme === "dark"
-                    ? "border-purple-400/20 bg-slate-900/70"
-                    : "border-purple-300/40 bg-purple-100/30"
-                }`}
-              >
-                <p
-                  className={`text-sm font-semibold uppercase tracking-[0.16em] ${
-                    theme === "dark" ? "text-purple-300" : "text-purple-600"
-                  }`}
-                >
-                  About {content.brand.name}
-                </p>
-                <h2
-                  className={`mt-3 text-3xl font-black sm:text-4xl ${
-                    theme === "dark" ? "text-white" : "text-slate-900"
-                  }`}
-                >
-                  Build, Play, and Earn in a Smarter Gaming Economy
-                </h2>
-                <p
-                  className={`mt-4 text-sm leading-relaxed sm:text-base ${
-                    theme === "dark" ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  {content.about}
-                </p>
-              </Motion.div>
-            </div>
-          </section>
         </main>
         <Suspense fallback={<div className="min-h-32" />}>
           <Footer
