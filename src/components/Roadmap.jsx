@@ -127,9 +127,15 @@ function Roadmap({ content, isDark = true }) {
                         isDark ? colors.dark : colors.light
                       }`}
                     >
+                      {/* Vertical quarter label */}
+                      <div className="absolute left-0 top-0 bottom-0 hidden lg:flex items-center">
+                        <div className="-rotate-90 origin-left pl-2 pr-2 text-xs font-semibold tracking-wider opacity-90">
+                          {phase.title}
+                        </div>
+                      </div>
                       {/* Gradient background overlay */}
                       <div
-                        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${colors.accent} pointer-events-none`}
+                        className={`absolute inset-0 rounded-2xl bg-linear-to-br ${colors.accent} pointer-events-none`}
                       />
 
                       {/* Phase Number Badge */}
@@ -148,6 +154,14 @@ function Roadmap({ content, isDark = true }) {
 
                       {/* Content */}
                       <div className="relative z-10">
+                        {/* small progress badge */}
+                        <div className="absolute right-3 top-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${index === 0 ? colors.badge : "bg-white/6 text-slate-300"}`}
+                          >
+                            {index === 0 ? "In progress" : "Planned"}
+                          </span>
+                        </div>
                         {/* Icon and Title */}
                         <div className="flex items-start gap-3 mb-4">
                           <div
@@ -249,8 +263,8 @@ function Roadmap({ content, isDark = true }) {
                     className={`h-1 w-8 rounded-full ${
                       index === 0
                         ? isDark
-                          ? "bg-gradient-to-r from-blue-400 to-purple-400"
-                          : "bg-gradient-to-r from-blue-500 to-purple-600"
+                          ? "bg-linear-to-r from-blue-400 to-purple-400"
+                          : "bg-linear-to-r from-blue-500 to-purple-600"
                         : isDark
                           ? "bg-slate-600"
                           : "bg-slate-300"

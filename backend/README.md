@@ -1,0 +1,361 @@
+/\*\*
+
+- SkyX Backend - Database & API Documentation
+- Complete system design for user profiles and referral system
+  \*/
+
+/\*
+
+- ============================================================================
+- ARCHITECTURE OVERVIEW
+- ============================================================================
+-
+- SkyX Backend follows a modular, production-ready architecture:
+-
+- ├── types/ - TypeScript interfaces and enums
+- ├── models/ - MongoDB/Mongoose schemas and models
+- ├── logic/ - Business logic (points, referrals, tasks, games)
+- ├── api/ - Express route handlers
+- ├── config/ - Database and environment configuration
+- ├── app.ts - Main Express application
+- └── examples.ts - API examples and payloads
+-
+- ============================================================================
+- CORE ENTITIES
+- ============================================================================
+-
+- USER
+- ***
+- - Unique referral code (auto-generated)
+- - Points balance (current points available)
+- - Total points earned (historical, used for leaderboard)
+- - Tier level (1-5) based on total points
+- - Optional: wallet address, KYC status
+-
+- Fields: \_id, email, fullName, passwordHash, referralCode, referredBy,
+-         points, totalPointsEarned, tierLevel, role, isActive, ...
+-
+-
+- REFERRAL
+- ***
+- - Links referrer (who shared the code) to referee (new user)
+- - Tracks sign-up and investment bonuses
+- - Status: pending → active → completed (or rejected)
+- - Investment threshold: $X amount required to unlock full reward
+-
+- Fields: \_id, referrerId, refereeId, referralCode, status,
+-         signUpBonusAwarded, investmentThreshold, currentInvestment,
+-         rewardPoints, acceptedAt, completedAt, ...
+-
+-
+- TASK
+- ***
+- - Discrete activities users can complete for points
+- - Types: survey, verification, content_creation, social_share, etc.
+- - Max completions per user (default 1)
+- - Metadata: flexible object for task-specific data
+-
+- Fields: \_id, title, description, taskType, pointsReward,
+-         isActive, maxCompletionsPerUser, metadata, ...
+-
+-
+- TASK COMPLETION
+- ***
+- - User submission of a task
+- - Verification workflow: pending → approved (or rejected)
+- - Admin can adjust points before approval
+- - One completion per user per task (unique constraint)
+-
+- Fields: \_id, userId, taskId, verificationStatus, pointsAwarded,
+-         proofUrl, verifiedBy, verifiedAt, completedAt, ...
+-
+-
+- GAME SESSION
+- ***
+- - Game play instance with score and difficulty
+- - Auto-calculates points based on score and difficulty
+- - Base points: easy=10, medium=25, hard=50
+- - Score multiplier: 0.5 to 1.5x depending on performance
+-
+- Fields: \_id, userId, gameType, difficulty, score, pointsEarned,
+-         startedAt, completedAt, metadata, ...
+-
+-
+- REWARD TRANSACTION
+- ***
+- - Immutable audit log of all point movements
+- - Supports: tasks, games, referrals, milestones, adjustments
+- - Processed flag prevents double-processing
+- - Enables analytics and fraud detection
+-
+- Fields: \_id, userId, rewardType, pointsAmount, sourceId,
+-         description, isProcessed, processedAt, createdAt, ...
+-
+-
+- ============================================================================
+- POINT SYSTEM & CALCULATIONS
+- ============================================================================
+-
+- TIER SYSTEM
+- ***
+- Tier 1: 0 - 999 points → Multiplier: 1.0x
+- Tier 2: 1,000 - 4,999 → Multiplier: 1.1x
+- Tier 3: 5,000 - 14,999 → Multiplier: 1.25x
+- Tier 4: 15,000 - 49,999 → Multiplier: 1.5x
+- Tier 5: 50,000+ → Multiplier: 2.0x
+-
+- Higher tier = earn bonus points on all future rewards!
+-
+- Example: Tier 2 user completes 50-point task:
+- Points awarded = floor(50 \* 1.1) = 55 points
+-
+-
+- TASK REWARDS
+- ***
+- - Base points set per task
+- - Multiplied by user's tier multiplier
+- - Auto-approved tasks (surveys): instant reward
+- - Admin-reviewed tasks (verification): after approval
+-
+- Task Types:
+- - survey (50-100 pts) → auto-approve
+- - verification (50-200 pts) → admin review
+- - content_creation (75-150) → admin review
+- - social_share (25-50) → auto-approve
+- - referral_milestone (100-500) → auto on threshold
+-
+-
+- GAME REWARDS
+- ***
+- Formula: base_points _ score_multiplier _ tier_multiplier
+-
+- Base by difficulty:
+- - Easy: 10 pts base
+- - Medium: 25 pts base
+- - Hard: 50 pts base
+-
+- Score multiplier (0.5x to 1.5x):
+- - 0% score → 0.5x multiplier
+- - 50% score → 1.0x multiplier
+- - 100% score → 1.5x multiplier (capped)
+-
+- Example: Hard game with 85% score, Tier 3 user:
+- Points = floor(50 _ (85/100 _ 1.0 + 0.5) \* 1.25)
+-          = floor(50 * 1.35 * 1.25)
+-          = floor(84.375) = 84 points
+-
+-
+- REFERRAL REWARDS
+- ***
+- Sign-up Bonus: 50 points to referrer
+- - Awarded immediately when referee signs up
+- - Prevents self-referral (email validation)
+- - Cannot award twice for same referee
+-
+- Investment Bonus: 200 points to referrer
+- - Awarded when referee invests $X (configurable, default $1000)
+- - Completes the referral record (status → completed)
+- - Tracks current investment for analytics
+-
+-
+- ============================================================================
+- REFERRAL LOGIC & VALIDATION
+- ============================================================================
+-
+- REFERRAL CODE GENERATION
+- ***
+- Format: SKY{USER_ID_SUFFIX}{RANDOM}
+- Example: SKYJ01N1AB (12 chars max)
+-
+- Unique per user, shared for lifetime.
+-
+-
+- REFERRAL RULES (Prevent Abuse)
+- ***
+- 1.  Code must exist and belong to active user
+- 2.  Referee email cannot match referrer email (self-referral check)
+- 3.  New user cannot already have an active referral
+- 4.  One referral link per unique email address
+- 5.  Rate limiting (future): max N referrals per day per user
+-
+- Example rejection: "Cannot use own referral code"
+-
+-
+- REFERRAL LIFECYCLE
+- ***
+- 1.  Referrer shares unique code (e.g., SKYJ01N1AB)
+- 2.  Referee signs up with code → Referral record created
+- 3.  Sign-up bonus awarded (50 pts) → status: ACTIVE
+- 4.  Referee invests $X → Investment bonus awarded (200 pts)
+- 5.  Referral marked COMPLETED
+-
+- Alternatively:
+- - Referee never invests → Referral stays ACTIVE indefinitely
+- - Admin rejects referral → Status: REJECTED (fraud suspected)
+-
+-
+- ============================================================================
+- API ENDPOINTS
+- ============================================================================
+-
+- USERS
+- ***
+- POST /api/users/register - Create account (with referral)
+- GET /api/users/profile - Current user full profile + stats
+- GET /api/users/:userId - Public user profile
+- GET /api/users/referrals/code - Get own referral code
+- GET /api/users/referrals/stats - Referral statistics
+- GET /api/leaderboard - Global leaderboard (top 100)
+- GET /api/leaderboard/context - User's rank with neighbors
+-
+- TASKS
+- ***
+- GET /api/tasks - List active tasks
+- GET /api/tasks/:taskId - Task details
+- POST /api/tasks/:taskId/submit - Submit completion
+- GET /api/tasks/completions/my-tasks - User's task history
+- GET /api/tasks/admin/pending - Pending reviews (admin)
+- POST /api/tasks/admin/approve/:id - Approve task (admin)
+- POST /api/tasks/admin/reject/:id - Reject task (admin)
+-
+- GAMES
+- ***
+- POST /api/games/start - Start game session
+- POST /api/games/:sessionId/complete - Complete game
+- GET /api/games/my-stats - User's game statistics
+- GET /api/games/:gameType/leaderboard - Game-specific leaderboard
+-
+-
+- ============================================================================
+- DATABASE QUERIES & INDEXES
+- ============================================================================
+-
+- User Queries (Optimized with indexes):
+- - findOne({ email }) → email index
+- - findOne({ referralCode }) → referralCode index
+- - find().sort({ totalPointsEarned }) → compound index for leaderboard
+-
+- Referral Queries:
+- - find({ referrerId, status }) → compound index for stats
+- - findOne({ refereeId }) → find referee by user ID
+-
+- Task Completion Queries:
+- - findOne({ userId, taskId }) → unique constraint
+- - find({ userId, verificationStatus }) → user's submissions
+- - find({ verificationStatus: 'pending' }) → admin queue
+-
+- Game Session Queries:
+- - find({ userId, completedAt: {$ne: null} }) → user's completed games
+- - find({ gameType, completedAt }).sort({ pointsEarned: -1 })
+-
+- Transaction Queries:
+- - find({ userId, createdAt: {$gte, $lte} }) → points in period
+- - find({ userId, rewardType, isProcessed }) → reward tracking
+-
+-
+- ============================================================================
+- DATA INTEGRITY & BUSINESS RULES
+- ============================================================================
+-
+- Constraints:
+- - User.referralCode: unique, required
+- - User.email: unique, required, lowercase, email format
+- - TaskCompletion: unique(userId, taskId) - one completion per task per user
+- - Referral: userId cannot equal refereeId (self-referral prevention)
+- - RewardTransaction: immutable (no updates after creation)
+-
+- Atomicity:
+- - User signup: create user → set referralCode → award bonus
+- (all-or-nothing in transaction)
+- - Task completion: create completion → approve → update user points
+- (verify user exists before awarding)
+-
+-
+- ============================================================================
+- PRODUCTION CONSIDERATIONS
+- ============================================================================
+-
+- Security:
+- - Use bcrypt for password hashing (min 10 rounds)
+- - JWT token expiry: 24 hours (refresh token pattern)
+- - Rate limiting: 100 requests/min per user
+- - Admin routes require explicit role check
+- - Validate all user inputs (email, referral code format)
+-
+- Performance:
+- - Leaderboard: cache top 100 users (5-min TTL in Redis)
+- - User profile: cache for 1 min per user
+- - Batch transaction processing (e.g., daily rewards consolidation)
+- - Use MongoDB aggregation for complex analytics
+-
+- Monitoring:
+- - Track points awarded per day (anomaly detection)
+- - Monitor referral conversion rates
+- - Alert on duplicate/conflicting transactions
+- - Log admin actions (approvals, rejections)
+-
+- Scalability:
+- - Sharding strategy: by userId or createdAt (time-series)
+- - Consider archive old transactions (> 1 year)
+- - Implement read replicas for leaderboard queries
+- - CDN for user profile images
+-
+-
+- ============================================================================
+- MIGRATION & TESTING
+- ============================================================================
+-
+- Database Setup:
+- 1.  Create MongoDB collections with indexes (see SCHEMA section)
+- 2.  Set env vars: MONGODB_URI, PORT, FRONTEND_URL
+- 3.  Run app.startServer()
+- 4.  Verify /health endpoint responds 200 OK
+-
+- Test Data:
+- - Create 5 test users with varied tier levels
+- - Create sample tasks (5-10)
+- - Simulate referral flow: user A refers user B → verify points
+- - Complete tasks (mix of approved/rejected)
+- - Run game sessions with different scores
+- - Verify leaderboard rankings update correctly
+-
+- Deployment:
+- - Use Docker Compose for local dev
+- - GitHub Actions CI: lint, test, build, deploy to staging
+- - Staging smoke tests: user signup, task completion, leaderboard
+- - Production deployment: rolling update (no downtime)
+- \*/
+
+/\*
+
+- ============================================================================
+- GETTING STARTED
+- ============================================================================
+-
+- 1.  Installation:
+- npm install express mongoose cors dotenv
+- npm install --save-dev typescript @types/node @types/express
+-
+- 2.  Environment (.env):
+- MONGODB_URI=mongodb://localhost:27017/skyx
+- PORT=5000
+- FRONTEND_URL=http://localhost:3000
+- NODE_ENV=development
+-
+- 3.  Development:
+- npm run dev # Start with hot reload
+- npm run build # Compile TypeScript
+- npm run start # Production server
+- npm run test # Run tests
+-
+- 4.  API Testing:
+- curl -H "x-user-id: 507f1f77bcf86cd799439011" \\
+-         http://localhost:5000/api/users/profile
+-
+- 5.  Documentation:
+- - See examples.ts for complete API payloads
+- - See types/index.ts for data model definitions
+- - See logic/\*.ts for business rules implementation
+- \*/
+
+export const BACKEND_READY = true;

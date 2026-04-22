@@ -7,13 +7,20 @@ import AnimatedBackground from "../components/AnimatedBackground";
 
 // Lazy load below-the-fold components
 const Features = lazy(() => import("../components/Features"));
+const Problem = lazy(() => import("../components/Problem"));
+const How = lazy(() => import("../components/How"));
+const GamingDashboard = lazy(() => import("../components/GamingDashboard"));
+const Products = lazy(() => import("../components/Products"));
+const DashboardPreview = lazy(() => import("../components/DashboardPreview"));
 const WhyMatters = lazy(() => import("../components/WhyMatters"));
+const TokenSection = lazy(() => import("../components/TokenSection"));
 const Ecosystem = lazy(() => import("../components/Ecosystem"));
 const DataAnalysis = lazy(() => import("../components/DataAnalysis"));
 const Audience = lazy(() => import("../components/Audience"));
 const PitchDeck = lazy(() => import("../components/PitchDeck"));
 const Roadmap = lazy(() => import("../components/Roadmap"));
 const Trust = lazy(() => import("../components/Trust"));
+const Profile = lazy(() => import("../components/profile/UserProfile"));
 const Apps = lazy(() => import("../components/Apps"));
 const Partners = lazy(() => import("../components/Partners"));
 const Community = lazy(() => import("../components/Community"));
@@ -41,7 +48,10 @@ function Home({ content }) {
       : "light";
   });
 
-  const [activeSection, setActiveSection] = useState("home");
+  const [activeSection, setActiveSection] = useState(() =>
+    sectionIds && sectionIds.length ? sectionIds[0] : "home",
+  );
+  const [ignoreObserverUntil, setIgnoreObserverUntil] = useState(0);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -52,6 +62,9 @@ function Home({ content }) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        // If we recently clicked a nav link, ignore observer updates briefly
+        if (Date.now() < ignoreObserverUntil) return;
+
         const visibleSection = entries
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
@@ -74,7 +87,7 @@ function Home({ content }) {
     });
 
     return () => observer.disconnect();
-  }, [sectionIds]);
+  }, [sectionIds, ignoreObserverUntil]);
 
   return (
     <div
@@ -97,14 +110,41 @@ function Home({ content }) {
               currentTheme === "dark" ? "light" : "dark",
             )
           }
-          onSectionClick={(sectionId) => setActiveSection(sectionId)}
+          onSectionClick={(sectionId) => {
+            setActiveSection(sectionId);
+            setIgnoreObserverUntil(Date.now() + 800);
+          }}
         />
         <main>
           <Hero brand={content.brand} content={content.hero} theme={theme} />
           <Stats stats={content.stats} isDark={theme === "dark"} />
           <Suspense fallback={<div className="min-h-96" />}>
+            <Problem content={content.problems} theme={theme} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <How content={content.how} theme={theme} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <GamingDashboard isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Products content={content.products} theme={theme} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Profile />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <DashboardPreview theme={theme} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
             <WhyMatters
               content={content.whyMatters}
+              isDark={theme === "dark"}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <TokenSection
+              content={content.tokenSection}
               isDark={theme === "dark"}
             />
           </Suspense>
@@ -136,6 +176,7 @@ function Home({ content }) {
           <Suspense fallback={<div className="min-h-96" />}>
             <Features features={content.features} isDark={theme === "dark"} />
           </Suspense>
+
           <Suspense fallback={<div className="min-h-96" />}>
             <Apps apps={content.apps} theme={theme} isDark={theme === "dark"} />
           </Suspense>

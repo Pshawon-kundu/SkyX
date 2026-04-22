@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useState, useEffect, Suspense, lazy } from "react";
 const Home = lazy(() => import("./pages/Home"));
+const LoginPage = lazy(() => import("./components/LoginPage"));
 const SplashScreen = lazy(() => import("./components/SplashScreen"));
 import { siteContent } from "./data/siteContent";
 
@@ -25,6 +26,7 @@ function App() {
       <Suspense fallback={<div />}>
         <Routes>
           <Route path="/" element={<Home content={siteContent} />} />
+          <Route path="/login" element={<LoginPage isDark={true} />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

@@ -1,0 +1,337 @@
+/\*\*
+
+- FRONTEND & BACKEND INTEGRATION GUIDE
+- Step-by-step instructions to connect SkyX React frontend with backend API
+  \*/
+
+/\*
+
+- ============================================================================
+- 1.  BACKEND SETUP (5 minutes)
+- ============================================================================
+-
+- Step 1.1: Start MongoDB
+- ***
+- Option A - Docker (Recommended):
+- cd backend
+- docker-compose up -d mongodb
+-
+- Option B - Local MongoDB:
+- mongod --dbpath ~/mongodb_data
+-
+-
+- Step 1.2: Install & Run Backend
+- ***
+- cd backend
+- npm install
+- npm run migrate # Seed sample data
+- npm run dev # Start dev server on port 5000
+-
+- Expected output:
+- ✓ MongoDB connected
+- ✓ Server running on http://localhost:5000
+-
+-
+- Step 1.3: Verify API Health
+- ***
+- curl http://localhost:5000/health
+-
+- Expected response:
+- { "status": "ok", "timestamp": "2024-01-23T..." }
+-
+-
+- ============================================================================
+- 2.  FRONTEND SETUP (5 minutes)
+- ============================================================================
+-
+- Step 2.1: Create API Client
+- ***
+- File: src/services/api.ts
+-
+- import axios from 'axios';
+-
+- const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+-
+- export const apiClient = axios.create({
+- baseURL: API_BASE_URL,
+- headers: {
+-     'Content-Type': 'application/json',
+-     'x-user-id': localStorage.getItem('userId') || '',
+-     'x-user-role': localStorage.getItem('userRole') || 'user',
+- },
+- });
+-
+- // Add interceptor to update headers on auth changes
+- apiClient.interceptors.request.use((config) => {
+- config.headers['x-user-id'] = localStorage.getItem('userId') || '';
+- config.headers['x-user-role'] = localStorage.getItem('userRole') || 'user';
+- return config;
+- });
+-
+-
+- Step 2.2: Create User Service
+- ***
+- File: src/services/userService.ts
+-
+- import { apiClient } from './api';
+-
+- export const userService = {
+- register: (data: {
+-     email: string;
+-     fullName: string;
+-     password: string;
+-     referralCode?: string;
+- }) => apiClient.post('/users/register', data),
+-
+- getProfile: () => apiClient.get('/users/profile'),
+-
+- getPublicProfile: (userId: string) =>
+-     apiClient.get(`/users/${userId}`),
+-
+- getReferralCode: () => apiClient.get('/users/referrals/code'),
+-
+- getReferralStats: () => apiClient.get('/users/referrals/stats'),
+-
+- getLeaderboard: (limit?: number) =>
+-     apiClient.get('/leaderboard', { params: { limit } }),
+-
+- getLeaderboardContext: (contextSize?: number) =>
+-     apiClient.get('/leaderboard/context', { params: { contextSize } }),
+- };
+-
+-
+- Step 2.3: Create Task Service
+- ***
+- File: src/services/taskService.ts
+-
+- export const taskService = {
+- listTasks: (type?: string, limit?: number) =>
+-     apiClient.get('/tasks', { params: { type, limit } }),
+-
+- getTask: (taskId: string) => apiClient.get(`/tasks/${taskId}`),
+-
+- submitTask: (taskId: string, proofUrl?: string) =>
+-     apiClient.post(`/tasks/${taskId}/submit`, { proofUrl }),
+-
+- getMyTasks: () => apiClient.get('/tasks/completions/my-tasks'),
+- };
+-
+-
+- Step 2.4: Create Game Service
+- ***
+- File: src/services/gameService.ts
+-
+- export const gameService = {
+- startGame: (gameType: string, difficulty: 'easy' | 'medium' | 'hard') =>
+-     apiClient.post('/games/start', { gameType, difficulty }),
+-
+- completeGame: (sessionId: string, score: number) =>
+-     apiClient.post(`/games/${sessionId}/complete`, { score }),
+-
+- getMyStats: () => apiClient.get('/games/my-stats'),
+-
+- getLeaderboard: (gameType: string, limit?: number) =>
+-     apiClient.get(`/games/${gameType}/leaderboard`, { params: { limit } }),
+- };
+-
+-
+- Step 2.5: .env Configuration
+- ***
+- File: .env
+-
+- REACT_APP_API_URL=http://localhost:5000/api
+-
+-
+- ============================================================================
+- 3.  AUTHENTICATION FLOW (10 minutes)
+- ============================================================================
+-
+- Step 3.1: Implement Auth Context
+- ***
+- File: src/context/AuthContext.tsx
+-
+- import React, { createContext, useState, useEffect } from 'react';
+-
+- interface AuthContextType {
+- userId: string | null;
+- isAuthenticated: boolean;
+- login: (userId: string, role?: string) => void;
+- logout: () => void;
+- }
+-
+- export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+-
+- export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+- const [userId, setUserId] = useState<string | null>(
+-     localStorage.getItem('userId')
+- );
+-
+- const login = (userId: string, role: string = 'user') => {
+-     localStorage.setItem('userId', userId);
+-     localStorage.setItem('userRole', role);
+-     setUserId(userId);
+- };
+-
+- const logout = () => {
+-     localStorage.removeItem('userId');
+-     localStorage.removeItem('userRole');
+-     setUserId(null);
+- };
+-
+- return (
+-     <AuthContext.Provider
+-       value={{
+-         userId,
+-         isAuthenticated: !!userId,
+-         login,
+-         logout,
+-       }}
+-     >
+-       {children}
+-     </AuthContext.Provider>
+- );
+- };
+-
+-
+- Step 3.2: Update LoginPage Component
+- ***
+- After successful signup:
+-
+- const { login } = useContext(AuthContext);
+- const response = await userService.register(formData);
+- login(response.data.user.id, 'user');
+- navigate('/profile');
+-
+-
+- ============================================================================
+- 4.  PROFILE PAGE IMPLEMENTATION (15 minutes)
+- ============================================================================
+-
+- Step 4.1: Create Profile Page Component
+- ***
+- File: src/pages/ProfilePage.tsx
+-
+- import React, { useEffect, useState } from 'react';
+- import { userService, taskService, gameService } from '../services';
+- import { IProfileSummary } from '../types';
+-
+- export const ProfilePage = () => {
+- const [profile, setProfile] = useState<IProfileSummary | null>(null);
+- const [loading, setLoading] = useState(true);
+-
+- useEffect(() => {
+-     const fetchProfile = async () => {
+-       try {
+-         const response = await userService.getProfile();
+-         setProfile(response.data);
+-       } catch (error) {
+-         console.error('Failed to load profile:', error);
+-       } finally {
+-         setLoading(false);
+-       }
+-     };
+-
+-     fetchProfile();
+- }, []);
+-
+- if (loading) return <div>Loading...</div>;
+- if (!profile) return <div>Failed to load profile</div>;
+-
+- return (
+-     <div className="profile-container">
+-       <h1>{profile.user.fullName}</h1>
+-       <div className="stats">
+-         <div>Points: {profile.stats.totalPoints}</div>
+-         <div>Tier: {profile.user.tierLevel}</div>
+-         <div>Rank: {profile.leaderboardRank}</div>
+-       </div>
+-       <div className="referral-code">
+-         <p>Share your referral code:</p>
+-         <code>{profile.referralCode}</code>
+-       </div>
+-     </div>
+- );
+- };
+-
+-
+- ============================================================================
+- 5.  TESTING API INTEGRATION (10 minutes)
+- ============================================================================
+-
+- Test Sequence:
+-
+- 1.  User Registration
+- curl -X POST http://localhost:5000/api/users/register \\
+-         -H "Content-Type: application/json" \\
+-         -d '{
+-           "email":"test@example.com",
+-           "fullName":"Test User",
+-           "password":"TestPass123"
+-         }'
+-
+- Copy the returned user.id and use as x-user-id header
+-
+-
+- 2.  Get Profile
+- curl -H "x-user-id: {USER_ID}" \\
+-         http://localhost:5000/api/users/profile
+-
+-
+- 3.  Get Referral Code
+- curl -H "x-user-id: {USER_ID}" \\
+-         http://localhost:5000/api/users/referrals/code
+-
+-
+- 4.  Get Tasks
+- curl http://localhost:5000/api/tasks
+-
+-
+- 5.  Submit Task
+- curl -X POST \\
+-         -H "x-user-id: {USER_ID}" \\
+-         -H "Content-Type: application/json" \\
+-         -d '{}' \\
+-         http://localhost:5000/api/tasks/{TASK_ID}/submit
+-
+-
+- ============================================================================
+- 6.  DEPLOYMENT TO PRODUCTION (30 minutes)
+- ============================================================================
+-
+- Backend Deployment (e.g., Heroku):
+- 1.  Create Heroku account and install CLI
+- 2.  heroku create skyx-backend
+- 3.  Set MongoDB Atlas connection string:
+- heroku config:set MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/skyx
+- 4.  Deploy: git push heroku main
+-
+- Frontend Deployment (e.g., Vercel):
+- 1.  Update .env.production:
+- REACT_APP_API_URL=https://skyx-backend.herokuapp.com/api
+- 2.  Deploy: vercel --prod
+-
+- Environment Variables to Set:
+- - Backend: MONGODB_URI, JWT_SECRET, FRONTEND_URL
+- - Frontend: REACT_APP_API_URL
+-
+-
+- ============================================================================
+- 7.  MONITORING & DEBUGGING (Ongoing)
+- ============================================================================
+-
+- Check Backend Logs:
+- heroku logs --tail
+-
+- Monitor MongoDB:
+- mongosh mongodb+srv://user:pass@cluster.mongodb.net/skyx
+- db.users.countDocuments()
+- db.referrals.find()
+-
+- Debug API Calls:
+- Add console.log in apiClient interceptors
+- Use Postman or Thunder Client for manual testing
+- Check browser DevTools Network tab
+-
+- \*/
+
+export const INTEGRATION_COMPLETE = true;

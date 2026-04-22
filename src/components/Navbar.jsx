@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu, MoonStar, Sun, X as XIcon } from "lucide-react";
 import {
   motion as Motion,
@@ -168,28 +169,37 @@ function Navbar({
           </ul>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <button
-              type="button"
-              onClick={onThemeToggle}
-              aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition ${
+            <Link
+              to="/login"
+              className={`px-3 py-2 text-sm font-medium transition ${
                 isDark
-                  ? "border-purple-300/35 bg-purple-400/10 text-purple-200 hover:bg-purple-300/20"
-                  : "border-purple-400/40 bg-purple-200/20 text-purple-700 hover:bg-purple-300/30"
+                  ? "text-slate-300 hover:text-cyan-300"
+                  : "text-slate-600 hover:text-purple-600"
               }`}
             >
-              {isDark ? <Sun size={17} /> : <MoonStar size={17} />}
-            </button>
-            <a
-              href="#apps"
-              className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-                isDark
-                  ? "bg-purple-400 text-slate-950 hover:bg-purple-300"
-                  : "bg-purple-600 text-white hover:bg-purple-700"
-              }`}
-            >
-              Launch App
-            </a>
+              Login
+            </Link>
+            {(() => {
+              const appsActive =
+                activeSection === "apps" ||
+                activeSection === "dashboard-preview";
+              return (
+                <a
+                  href="#apps"
+                  className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
+                    appsActive
+                      ? isDark
+                        ? "ring-2 ring-purple-300/30 bg-purple-500 text-white"
+                        : "bg-purple-700 text-white"
+                      : isDark
+                        ? "bg-purple-400 text-slate-950 hover:bg-purple-300"
+                        : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
+                >
+                  Launch with SkyX
+                </a>
+              );
+            })()}
           </div>
 
           <div className="flex items-center gap-2 lg:hidden">
@@ -258,17 +268,22 @@ function Navbar({
                   </li>
                 ))}
               </ul>
-              <a
-                href="#apps"
-                onClick={closeMenu}
-                className={`mt-4 inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-sm font-semibold ${
-                  isDark
-                    ? "bg-purple-400 text-slate-950"
-                    : "bg-purple-600 text-white"
-                }`}
-              >
-                Launch App
-              </a>
+              <div className="mt-4 space-y-2">
+                <Link
+                  to="/login"
+                  onClick={closeMenu}
+                  className={`block w-full text-center rounded px-4 py-2 text-sm font-medium ${isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-600 hover:text-purple-700"}`}
+                >
+                  Login
+                </Link>
+                <a
+                  href="#apps"
+                  onClick={closeMenu}
+                  className={`block w-full text-center rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white ${isDark ? "" : ""}`}
+                >
+                  Launch with SkyX
+                </a>
+              </div>
             </Motion.div>
           )}
         </AnimatePresence>

@@ -6,27 +6,103 @@ export const siteContent = {
   },
   navLinks: [
     { label: "Home", href: "#home" },
-    { label: "Why It Matters", href: "#why-matters" },
+    { label: "Platform", href: "#features" },
+    { label: "Venture Engine", href: "#how" },
     { label: "Ecosystem", href: "#ecosystem" },
-    { label: "Data Analysis", href: "#data-analysis" },
-    { label: "Audience", href: "#audience" },
-    { label: "Roadmap", href: "#roadmap" },
-    { label: "About", href: "#about" },
+    { label: "Dashboard", href: "#dashboard-preview" },
+    { label: "Docs", href: "#about" },
   ],
   hero: {
-    title: "Build, Play, and Earn in a Smarter Gaming Economy",
-    subtitle:
-      "A next-generation gaming ecosystem where players don't just play — they participate, grow, and retain value through a structured and transparent reward system.",
-    launchDate: "Launching April 25, 2026",
-    ctaPrimary: "Join Early Access",
-    ctaSecondary: "View Roadmap",
-    ctaTertiary: "Download Pitch Deck",
-    supportingText:
-      "Early-stage access is limited. Join the first wave of participants shaping the ecosystem.",
-    trustBadges: [
-      { label: "Global Gaming Market", value: "$200B+" },
-      { label: "Early Access", value: "Limited" },
-      { label: "Launch Date", value: "April 25" },
+    title: "SkyX",
+    subtitle: "Autonomous Venture Infrastructure for Web3",
+    description:
+      "Build, validate, fund, and launch tokenized ecosystems using AI agents, on-chain workflows, and institutional-grade governance.",
+    ctaPrimary: "Launch with SkyX",
+    ctaSecondary: "View Litepaper",
+    trustLines: [
+      {
+        icon: "Zap",
+        text: "Reduce launch time from months to weeks",
+      },
+      {
+        icon: "Cpu",
+        text: "AI-powered due diligence & tokenomics",
+      },
+      {
+        icon: "Link",
+        text: "Transparent, on-chain execution",
+      },
+    ],
+  },
+  problems: {
+    title: "Web3 Launching is Broken",
+    cards: [
+      {
+        icon: "Zap",
+        title: "Fragmented Tools",
+        description:
+          "Founders juggle disconnected services—no integrated platform for building Web3 ventures.",
+      },
+      {
+        icon: "Search",
+        title: "Weak Due Diligence",
+        description:
+          "Limited data-driven analysis of token designs, market fit, and sustainability metrics.",
+      },
+      {
+        icon: "TrendingDown",
+        title: "Poor Token Design",
+        description:
+          "Most tokenomics are replicas. Few projects design systems for long-term utility and retention.",
+      },
+      {
+        icon: "Lock",
+        title: "Compliance Complexity",
+        description:
+          "Regulatory uncertainty and manual compliance processes slow down launches by months.",
+      },
+    ],
+  },
+  how: {
+    title: "The SkyX Venture Engine",
+    subtitle: "From concept to scale in 5 integrated steps",
+    steps: [
+      {
+        icon: "Radio",
+        number: "1",
+        title: "Signal",
+        description: "Project intake & AI scoring",
+        details:
+          "Submit your venture concept for AI-powered initial analysis and scoring",
+      },
+      {
+        icon: "CheckCircle2",
+        number: "2",
+        title: "Validate",
+        description: "Due diligence & risk analysis",
+        details: "Comprehensive risk assessment and market validation",
+      },
+      {
+        icon: "Palette",
+        number: "3",
+        title: "Design",
+        description: "Tokenomics & governance",
+        details: "AI-optimized tokenomics and governance framework design",
+      },
+      {
+        icon: "Rocket",
+        number: "4",
+        title: "Launch",
+        description: "Fundraising & listing",
+        details: "On-chain deployment with institutional-grade infrastructure",
+      },
+      {
+        icon: "TrendingUp",
+        number: "5",
+        title: "Scale",
+        description: "Analytics & DAO growth",
+        details: "Real-time metrics and DAO evolution support",
+      },
     ],
   },
   whyMatters: {
@@ -82,6 +158,54 @@ export const siteContent = {
         description:
           "Asset exchange system enabling value circulation and player-to-player interaction within the ecosystem.",
       },
+    ],
+  },
+  tokenSection: {
+    title: "SkyX Ecosystem",
+    features: [
+      {
+        icon: "Grid",
+        title: "Platform access",
+        description:
+          "Role-based access to platform features and early integrations. Details subject to rollout schedules.",
+      },
+      {
+        icon: "Star",
+        title: "Staking & incentives",
+        description:
+          "Mechanisms to encourage participation and align incentives — designs will be conservative and audit-ready.",
+      },
+      {
+        icon: "Users",
+        title: "Governance participation",
+        description:
+          "Community-led proposals and voting primitives for platform decisions, phased by governance maturity.",
+      },
+      {
+        icon: "Rocket",
+        title: "Launch infrastructure",
+        description:
+          "On-chain deployment tools and listing workflows to streamline launches while maintaining compliance.",
+      },
+    ],
+  },
+  products: {
+    title: "Product Modules",
+    items: [
+      { icon: "Search", name: "SkyScan", tagline: "AI due diligence engine" },
+      { icon: "Cpu", name: "SkyToken", tagline: "Tokenomics simulator" },
+      {
+        icon: "Users",
+        name: "SkyRaise",
+        tagline: "Fundraising + investor matching",
+      },
+      {
+        icon: "Rocket",
+        name: "SkyLaunch",
+        tagline: "Launch & listing workflows",
+      },
+      { icon: "Shield", name: "SkyGuard", tagline: "Compliance tools" },
+      { icon: "Columns", name: "SkyDAO", tagline: "Governance & voting" },
     ],
   },
   dataAnalysis: {
@@ -202,46 +326,36 @@ export const siteContent = {
     cta: "Download Full Pitch Deck",
   },
   roadmap: {
-    title: "Clear Direction. Structured Growth.",
+    title: "Roadmap",
     phases: [
       {
-        title: "Phase 1 — Pre-Launch",
-        items: ["Website launch", "Community building", "Waitlist onboarding"],
+        title: "Q2",
+        items: ["Platform + AI scoring"],
       },
       {
-        title: "Phase 2 — Launch (April 25, 2026)",
-        items: [
-          "Platform release",
-          "Core features live",
-          "First users onboarded",
-        ],
+        title: "Q3",
+        items: ["Tokenomics + launch tools"],
       },
       {
-        title: "Phase 3 — Growth",
-        items: [
-          "Feature expansion",
-          "Reward system improvements",
-          "Community scaling",
-        ],
+        title: "Q4",
+        items: ["Governance + DAO"],
       },
       {
-        title: "Phase 4 — Expansion",
-        items: [
-          "New mechanics",
-          "Ecosystem partnerships",
-          "Platform evolution",
-        ],
+        title: "Next",
+        items: ["API + ecosystem expansion"],
       },
     ],
   },
   trust: {
-    title: "Built with Long-Term Thinking",
+    title: "Built for Transparency & Compliance",
     points: [
-      "Focus on sustainability",
-      "Clear system design",
-      "Transparent communication",
-      "Community-first approach",
+      "AI + human review",
+      "On-chain audit trails",
+      "Regulatory-aware workflows",
+      "Secure data handling",
     ],
+    disclaimer:
+      "Token and regulatory guidance subject to change; this is not legal advice.",
   },
   finalCta: {
     title: "Be Part of the First Wave",
@@ -307,10 +421,13 @@ export const siteContent = {
     "Digital Assets",
   ],
   communities: [
-    { name: "X", href: "#", handle: "@SkyXGaming" },
+    { name: "X", href: "https://x.com/Sky_XFi", handle: "@Sky_XFi" },
     { name: "Discord", href: "#", handle: "SkyX Community" },
-    { name: "Telegram", href: "#", handle: "t.me/SkyX" },
-    { name: "GitHub", href: "#", handle: "github.com/skyx" },
+    {
+      name: "Telegram",
+      href: "https://t.me/Sky_X_Fi",
+      handle: "t.me/Sky_X_Fi",
+    },
   ],
   about:
     "SkyX is building a player-owned gaming economy where participation leads to real value. Our structured approach focuses on sustainability, transparency, and long-term engagement rather than short-term hype.",
