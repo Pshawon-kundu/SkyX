@@ -166,9 +166,17 @@ const PitchDeckDownload: React.FC<PitchDeckDownloadProps> = ({
 
             {/* Title and description */}
             <div className="flex-1">
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-2 bg-gradient-to-r from-purple-300 via-cyan-300 to-purple-300 bg-clip-text text-transparent">
-                {title}
-              </h2>
+              <Motion.button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="text-left w-full group/title cursor-pointer mb-2"
+              >
+                <h2 className="text-2xl sm:text-3xl font-black tracking-tight bg-gradient-to-r from-purple-300 via-cyan-300 to-purple-300 group-hover/title:from-purple-200 group-hover/title:via-cyan-200 group-hover/title:to-purple-200 bg-clip-text text-transparent transition duration-300">
+                  {title}
+                </h2>
+              </Motion.button>
               <p className="text-sm sm:text-base text-slate-400 group-hover:text-slate-300 transition duration-300">
                 {description}
               </p>
