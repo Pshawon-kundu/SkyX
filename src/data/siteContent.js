@@ -10,6 +10,7 @@ export const siteContent = {
     { label: "Venture Engine", href: "#how" },
     { label: "Ecosystem", href: "#ecosystem" },
     { label: "Dashboard", href: "#dashboard-preview" },
+    { label: "White Paper", href: "#white-paper" },
     { label: "Docs", href: "#about" },
   ],
   hero: {

@@ -22,6 +22,7 @@ const PitchDeck = lazy(() => import("../components/PitchDeck"));
 const PitchDeckDownload = lazy(() => import("../components/PitchDeckDownload"));
 const Roadmap = lazy(() => import("../components/Roadmap"));
 const Trust = lazy(() => import("../components/Trust"));
+const WhitePaper = lazy(() => import("../components/WhitePaper"));
 const Profile = lazy(() => import("../components/profile/UserProfile"));
 const Apps = lazy(() => import("../components/Apps"));
 const Partners = lazy(() => import("../components/Partners"));
@@ -185,6 +186,9 @@ function Home({ content }) {
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
             <Trust content={content.trust} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <WhitePaper theme={theme} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
             <Features features={content.features} isDark={theme === "dark"} />
