@@ -71,25 +71,20 @@ export const connectDB = async (): Promise<void> => {
     await mongoose.connect(MONGODB_URI);
     console.log("✓ MongoDB connected");
   } catch (error) {
-    console.error("✗ MongoDB connection failed:", error);
-    process.exit(1);
+    console.warn("⚠ MongoDB connection failed:", error);
+    console.warn("Continuing without MongoDB. API routes may be limited.");
   }
 };
 
 // ============ SERVER START ============
 
 export const startServer = async (): Promise<void> => {
-  try {
-    await connectDB();
+  await connectDB();
 
-    app.listen(PORT, () => {
-      console.log(`✓ Server running on http://localhost:${PORT}`);
-      console.log(`✓ API docs available at http://localhost:${PORT}/api/docs`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
+  app.listen(PORT, () => {
+    console.log(`✓ Server running on http://localhost:${PORT}`);
+    console.log(`✓ API docs available at http://localhost:${PORT}/api/docs`);
+  });
 };
 
 // Start if run directly

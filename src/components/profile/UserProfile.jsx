@@ -59,10 +59,10 @@ export default function UserProfile({ initialUser }) {
   return (
     <section id="profile" className="py-16 sm:py-20">
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,360px)]">
+          <div className="space-y-6">
             <div className="rounded-2xl border p-6 bg-slate-900/30">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <img
                   src={user.avatarUrl}
                   alt="avatar"
@@ -151,7 +151,7 @@ export default function UserProfile({ initialUser }) {
               <p className="text-sm text-slate-400">
                 Your rank and points compared to others
               </p>
-              <div className="mt-4">
+              <div className="mt-4 mx-auto w-full max-w-5xl">
                 <Suspense fallback={<div className="min-h-96" />}>
                   <DailyLeaderboard theme="dark" />
                 </Suspense>
@@ -159,29 +159,31 @@ export default function UserProfile({ initialUser }) {
             </div>
           </div>
 
-          <aside className="space-y-4">
-            <LeaderboardCard
-              rank={42}
-              level={Math.floor(total / 1000)}
-              totalPoints={total}
-            />
-            <div className="rounded-2xl border p-4 bg-slate-900/30">
-              <h3 className="text-sm font-semibold text-purple-300">
-                Quick Actions
-              </h3>
-              <div className="mt-3 space-y-2">
-                <button className="w-full rounded bg-purple-600 px-3 py-2 text-sm font-semibold">
-                  Invite friends
-                </button>
-                <button className="w-full rounded border px-3 py-2 text-sm">
-                  View referral analytics
-                </button>
-                <button
-                  className="w-full rounded bg-emerald-500 px-3 py-2 text-sm font-semibold"
-                  onClick={handleCopyReferral}
-                >
-                  Copy referral link
-                </button>
+          <aside className="space-y-4 lg:self-start lg:sticky lg:top-24">
+            <div className="space-y-4">
+              <LeaderboardCard
+                rank={42}
+                level={Math.floor(total / 1000)}
+                totalPoints={total}
+              />
+              <div className="rounded-2xl border p-4 bg-slate-900/30">
+                <h3 className="text-sm font-semibold text-purple-300">
+                  Quick Actions
+                </h3>
+                <div className="mt-3 space-y-2">
+                  <button className="w-full rounded bg-purple-600 px-3 py-2 text-sm font-semibold">
+                    Invite friends
+                  </button>
+                  <button className="w-full rounded border px-3 py-2 text-sm">
+                    View referral analytics
+                  </button>
+                  <button
+                    className="w-full rounded bg-emerald-500 px-3 py-2 text-sm font-semibold"
+                    onClick={handleCopyReferral}
+                  >
+                    Copy referral link
+                  </button>
+                </div>
               </div>
             </div>
           </aside>

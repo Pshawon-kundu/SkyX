@@ -120,7 +120,7 @@ const DailyLeaderboard = ({ theme }) => {
         />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <Motion.div
           variants={containerVariants}
@@ -145,7 +145,7 @@ const DailyLeaderboard = ({ theme }) => {
           </p>
         </Motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="mx-auto grid w-full max-w-4xl grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Daily Stats Cards */}
           {[
             {
@@ -224,7 +224,7 @@ const DailyLeaderboard = ({ theme }) => {
           initial="hidden"
           whileInView="visible"
           viewport={animations.viewport}
-          className={`rounded-2xl border ${
+          className={`mx-auto max-w-4xl rounded-2xl border ${
             isDark
               ? "border-slate-700/50 bg-slate-800/40"
               : "border-slate-200/50 bg-white/40"
