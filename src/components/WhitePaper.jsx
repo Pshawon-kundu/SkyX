@@ -6,12 +6,13 @@ const WhitePaper = ({ theme }) => {
   const isDark = theme === "dark";
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const whitePaperUrl = "/SkyX Whitepaper v1.pdf";
+  const whitePaperUrl = encodeURI("/SkyX Whitepaper v1.pdf");
+  const whitePaperName = "SkyX Whitepaper v1.pdf";
 
   const handleDownload = () => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = whitePaperUrl;
-    link.download = 'SkyX Whitepaper v1.pdf';
+    link.download = whitePaperName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -79,8 +80,9 @@ const WhitePaper = ({ theme }) => {
               isDark ? "text-slate-400" : "text-slate-600"
             }`}
           >
-            Dive deep into the SkyX ecosystem, our vision, technology, and roadmap.
-            Download our comprehensive white paper to understand the future of Web3 gaming.
+            Dive deep into the SkyX ecosystem, our vision, technology, and
+            roadmap. Download our comprehensive white paper to understand the
+            future of Web3 gaming.
           </p>
         </Motion.div>
 
