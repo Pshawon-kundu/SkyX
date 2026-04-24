@@ -17,6 +17,7 @@ const TokenSection = lazy(() => import("../components/TokenSection"));
 const Ecosystem = lazy(() => import("../components/Ecosystem"));
 const DataAnalysis = lazy(() => import("../components/DataAnalysis"));
 const Audience = lazy(() => import("../components/Audience"));
+const OperatorsSection = lazy(() => import("../components/OperatorsSection"));
 const PitchDeck = lazy(() => import("../components/PitchDeck"));
 const PitchDeckDownload = lazy(() => import("../components/PitchDeckDownload"));
 const Roadmap = lazy(() => import("../components/Roadmap"));
@@ -24,6 +25,7 @@ const Trust = lazy(() => import("../components/Trust"));
 const Profile = lazy(() => import("../components/profile/UserProfile"));
 const Apps = lazy(() => import("../components/Apps"));
 const Partners = lazy(() => import("../components/Partners"));
+const InvestorsSection = lazy(() => import("../components/InvestorsSection"));
 const Community = lazy(() => import("../components/Community"));
 const FinalCta = lazy(() => import("../components/FinalCta"));
 const Footer = lazy(() => import("../components/Footer"));
@@ -126,6 +128,9 @@ function Home({ content }) {
             <How content={content.how} theme={theme} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
+            <OperatorsSection theme={theme} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
             <GamingDashboard isDark={theme === "dark"} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
@@ -190,6 +195,9 @@ function Home({ content }) {
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
             <Partners partners={content.partners} isDark={theme === "dark"} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <InvestorsSection theme={theme} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
             <Community

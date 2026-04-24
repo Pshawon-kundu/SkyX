@@ -15,10 +15,12 @@ export const siteContent = {
   hero: {
     title: "SkyX",
     subtitle: "Autonomous Venture Infrastructure for Web3",
+    tagline:
+      "SkyX is not just a platform — it is a venture engine you can own and operate.",
     description:
       "Build, validate, fund, and launch tokenized ecosystems using AI agents, on-chain workflows, and institutional-grade governance.",
     ctaPrimary: "Launch with SkyX",
-    ctaSecondary: "View Litepaper",
+    ctaSecondary: "Operate SkyX",
     trustLines: [
       {
         icon: "Zap",

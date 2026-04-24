@@ -4,7 +4,7 @@
   "description": "SkyX Backend - User Profile & Referral System API",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "dev": "ts-node-dev --respawn --transpile-only app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "lint": "eslint src/**/*.ts",
@@ -34,7 +34,7 @@
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.0",
     "@types/jsonwebtoken": "^9.0.2",
-    "@types/node": "^19.0.0",
+    "@types/node": "^20.0.0",
     "eslint": "^8.36.0",
     "jest": "^29.5.0",
     "ts-jest": "^29.1.0",

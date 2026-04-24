@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import ReferralCard from "./ReferralCard";
 import PointsSummary from "./PointsSummary";
 import TaskList from "./TaskList";
@@ -9,6 +9,7 @@ import {
   calcTotalPoints,
   copyToClipboard,
 } from "../../utils/profileUtils";
+import DailyLeaderboard from "../DailyLeaderboard";
 
 export default function UserProfile({ initialUser }) {
   const [user, setUser] = useState(initialUser || exampleUser());
@@ -50,7 +51,9 @@ export default function UserProfile({ initialUser }) {
       await copyToClipboard(
         `${window.location.origin}/?ref=${encodeURIComponent(user.referralCode)}`,
       );
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to copy referral link", err);
+    }
   };
 
   return (
@@ -140,6 +143,18 @@ export default function UserProfile({ initialUser }) {
               </div>
               <div className="mt-4">
                 <ActivityHistory history={user.pointsHistory} />
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border p-6 bg-slate-900/20">
+              <h3 className="text-lg font-semibold text-white">Leaderboard</h3>
+              <p className="text-sm text-slate-400">
+                Your rank and points compared to others
+              </p>
+              <div className="mt-4">
+                <Suspense fallback={<div className="min-h-96" />}>
+                  <DailyLeaderboard theme="dark" />
+                </Suspense>
               </div>
             </div>
           </div>

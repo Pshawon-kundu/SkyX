@@ -197,7 +197,12 @@ function Footer({ brand, links, isDark = true }) {
             : "border-slate-300 text-slate-600"
         }`}
       >
-        {`© ${new Date().getFullYear()} ${brand.name}. All rights reserved.`}
+        <p className="mb-3">
+          SkyX can be deployed and operated as your own venture platform.
+        </p>
+        <p>
+          {`© ${new Date().getFullYear()} ${brand.name}. All rights reserved.`}
+        </p>
       </Motion.div>
     </footer>
   );

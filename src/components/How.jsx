@@ -244,6 +244,23 @@ function How({ content, theme }) {
           </div>
         </Motion.div>
 
+        {/* Operator Note */}
+        <Motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="mt-12 sm:mt-16 text-center"
+        >
+          <p
+            className={`text-lg font-medium italic ${
+              isDark ? "text-purple-300/80" : "text-purple-600/80"
+            }`}
+          >
+            This workflow can be fully operated and managed by platform owners.
+          </p>
+        </Motion.div>
+
         {/* Bottom CTA */}
         <Motion.div
           initial={{ opacity: 0, y: 20 }}

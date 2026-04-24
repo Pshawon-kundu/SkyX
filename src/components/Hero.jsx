@@ -74,6 +74,13 @@ function Hero({ brand, content, theme }) {
             <p className="text-xl sm:text-2xl font-semibold text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text">
               {content.subtitle}
             </p>
+            {content.tagline && (
+              <p
+                className={`text-lg sm:text-xl leading-relaxed font-medium ${isDark ? "text-slate-300" : "text-slate-700"}`}
+              >
+                {content.tagline}
+              </p>
+            )}
           </Motion.div>
 
           {/* Description */}

@@ -25,6 +25,15 @@ function DashboardPreview({ theme = "dark" }) {
       className={`py-16 sm:py-20 ${isDark ? "bg-slate-900/40" : "bg-white"}`}
     >
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        {/* Section Label */}
+        <div className="mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-4 py-2 backdrop-blur-sm mb-4">
+            <span className="text-xs font-semibold text-purple-200">
+              For Operators
+            </span>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between mb-6">
           <h3
             className={`text-xl font-semibold ${isDark ? "text-white" : "text-slate-900"}`}
@@ -208,6 +217,52 @@ function DashboardPreview({ theme = "dark" }) {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Operator Features */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-slate-700/30">
+          <div
+            className={`p-4 rounded-lg ${isDark ? "bg-slate-900/40" : "bg-purple-50/40"}`}
+          >
+            <div
+              className={`text-sm font-semibold mb-1 ${isDark ? "text-purple-300" : "text-purple-700"}`}
+            >
+              ✓ Review and approve projects
+            </div>
+            <p
+              className={`text-xs ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Full control over project pipeline
+            </p>
+          </div>
+          <div
+            className={`p-4 rounded-lg ${isDark ? "bg-slate-900/40" : "bg-purple-50/40"}`}
+          >
+            <div
+              className={`text-sm font-semibold mb-1 ${isDark ? "text-purple-300" : "text-purple-700"}`}
+            >
+              ✓ Track revenue and activity
+            </div>
+            <p
+              className={`text-xs ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Real-time analytics and reporting
+            </p>
+          </div>
+          <div
+            className={`p-4 rounded-lg ${isDark ? "bg-slate-900/40" : "bg-purple-50/40"}`}
+          >
+            <div
+              className={`text-sm font-semibold mb-1 ${isDark ? "text-purple-300" : "text-purple-700"}`}
+            >
+              ✓ Manage users and ecosystem growth
+            </div>
+            <p
+              className={`text-xs ${isDark ? "text-slate-400" : "text-slate-600"}`}
+            >
+              Scale your platform with ease
+            </p>
           </div>
         </div>
       </div>
