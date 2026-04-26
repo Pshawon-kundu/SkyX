@@ -15,11 +15,26 @@ import {
   ComposedChart,
   Funnel,
   FunnelChart,
+  LabelList,
 } from "recharts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function DataAnalysis({ content, isDark = true }) {
   const [hoveredDriver, setHoveredDriver] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Prepare user growth chart data
   const userGrowthData = content.userGrowth.map((period) => {
@@ -197,58 +212,69 @@ function DataAnalysis({ content, isDark = true }) {
             <h3 className={`text-lg font-bold mb-6 ${labelClass}`}>
               Projected User Growth
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={userGrowthData}>
-                <defs>
-                  <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor={isDark ? "#10b981" : "#059669"}
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor={isDark ? "#10b981" : "#059669"}
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke={config.gridStroke}
-                />
-                <XAxis
-                  dataKey="period"
-                  stroke={config.labelColor}
-                  style={{ fontSize: "12px" }}
-                />
-                <YAxis
-                  stroke={config.labelColor}
-                  style={{ fontSize: "12px" }}
-                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: isDark ? "#1e293b" : "#f8fafc",
-                    border: isDark
-                      ? "1px solid rgba(168,85,247,0.3)"
-                      : "1px solid rgba(168,85,247,0.4)",
-                    borderRadius: "8px",
-                    color: isDark ? "#cbd5e1" : "#1e293b",
+            <div className="w-full" style={{ minHeight: isMobile ? 230 : 300 }}>
+              <ResponsiveContainer width="100%" height={isMobile ? 240 : 320}>
+                <AreaChart
+                  data={userGrowthData}
+                  margin={{
+                    top: 10,
+                    right: isMobile ? 0 : 16,
+                    left: isMobile ? -10 : 0,
+                    bottom: 0,
                   }}
-                  formatter={(value) => `${value.toLocaleString()} users`}
-                  labelStyle={{ color: isDark ? "#cbd5e1" : "#1e293b" }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="users"
-                  stroke={isDark ? "#10b981" : "#059669"}
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill="url(#colorUsers)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+                >
+                  <defs>
+                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="5%"
+                        stopColor={isDark ? "#10b981" : "#059669"}
+                        stopOpacity={0.8}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor={isDark ? "#10b981" : "#059669"}
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke={config.gridStroke}
+                  />
+                  <XAxis
+                    dataKey="period"
+                    stroke={config.labelColor}
+                    style={{ fontSize: isMobile ? "10px" : "12px" }}
+                  />
+                  <YAxis
+                    stroke={config.labelColor}
+                    width={isMobile ? 32 : 48}
+                    style={{ fontSize: isMobile ? "10px" : "12px" }}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1e293b" : "#f8fafc",
+                      border: isDark
+                        ? "1px solid rgba(168,85,247,0.3)"
+                        : "1px solid rgba(168,85,247,0.4)",
+                      borderRadius: "8px",
+                      color: isDark ? "#cbd5e1" : "#1e293b",
+                    }}
+                    formatter={(value) => `${value.toLocaleString()} users`}
+                    labelStyle={{ color: isDark ? "#cbd5e1" : "#1e293b" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="users"
+                    stroke={isDark ? "#10b981" : "#059669"}
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorUsers)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </Motion.div>
 
           {/* Growth Drivers vs Retention Strategy */}
@@ -343,26 +369,65 @@ function DataAnalysis({ content, isDark = true }) {
             <h3 className={`text-lg font-bold mb-6 ${labelClass}`}>
               User Adoption Funnel
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <FunnelChart>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: isDark ? "#1e293b" : "#f8fafc",
-                    border: isDark
-                      ? "1px solid rgba(168,85,247,0.3)"
-                      : "1px solid rgba(168,85,247,0.4)",
-                    borderRadius: "8px",
-                    color: isDark ? "#cbd5e1" : "#1e293b",
-                  }}
-                  formatter={(value) => `${value}%`}
-                />
-                <Funnel
-                  dataKey="value"
-                  data={funnelData}
-                  shape="smooth"
-                ></Funnel>
-              </FunnelChart>
-            </ResponsiveContainer>
+            {isMobile ? (
+              <div className="space-y-3">
+                {funnelData.map((stage) => (
+                  <div key={stage.name}>
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className={`text-sm font-medium ${subtextClass}`}>
+                        {stage.name}
+                      </span>
+                      <span className={`text-sm font-bold ${labelClass}`}>
+                        {stage.value}%
+                      </span>
+                    </div>
+                    <div
+                      className={`h-2 rounded-full overflow-hidden ${
+                        isDark ? "bg-slate-700" : "bg-slate-300"
+                      }`}
+                    >
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${stage.value}%`, backgroundColor: stage.fill }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="w-full" style={{ minHeight: 300 }}>
+                <ResponsiveContainer width="100%" height={320}>
+                  <FunnelChart
+                    margin={{ top: 10, right: 0, left: 0, bottom: 10 }}
+                  >
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: isDark ? "#1e293b" : "#f8fafc",
+                        border: isDark
+                          ? "1px solid rgba(168,85,247,0.3)"
+                          : "1px solid rgba(168,85,247,0.4)",
+                        borderRadius: "8px",
+                        color: isDark ? "#cbd5e1" : "#1e293b",
+                      }}
+                      formatter={(value) => `${value}%`}
+                    />
+                    <Funnel
+                      dataKey="value"
+                      data={funnelData}
+                      shape="smooth"
+                      isAnimationActive={false}
+                    >
+                      <LabelList
+                        position="right"
+                        fill={config.textColor}
+                        stroke="none"
+                        formatter={(value, name) => `${name}: ${value}%`}
+                      />
+                    </Funnel>
+                  </FunnelChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </Motion.div>
 
           {/* Token Flow Visualization */}
@@ -419,10 +484,10 @@ function DataAnalysis({ content, isDark = true }) {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className={`rounded-lg p-6 flex flex-col items-center justify-center min-h-[180px] relative ${
+                className={`rounded-lg p-6 flex flex-col items-center justify-center min-h-45 relative ${
                   isDark
-                    ? "bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700"
-                    : "bg-gradient-to-br from-slate-100/50 to-slate-50/50 border border-slate-300"
+                    ? "bg-linear-to-br from-slate-800/50 to-slate-900/50 border border-slate-700"
+                    : "bg-linear-to-br from-slate-100/50 to-slate-50/50 border border-slate-300"
                 }`}
               >
                 {/* Flow Cycle Title */}
