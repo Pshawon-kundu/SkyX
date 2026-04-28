@@ -24,3 +24,13 @@ jobs:
         run: npm test --if-present
       - name: Build
         run: npm run build
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+        continue-on-error: true
+
+      - name: Check TypeScript backend
+        working-directory: backend
+        run: npx tsc --noEmit
+        continue-on-error: true
