@@ -2,11 +2,124 @@ import { motion as Motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { animations } from "../data/animations";
 
+const FIRST_NAMES = [
+  "Alex",
+  "Jordan",
+  "Taylor",
+  "Morgan",
+  "Casey",
+  "Riley",
+  "Avery",
+  "Quinn",
+  "Sam",
+  "Dakota",
+  "Phoenix",
+  "Austin",
+  "Bailey",
+  "Skylar",
+  "Cameron",
+  "Parker",
+  "Madison",
+  "Blake",
+  "Drew",
+  "Harper",
+  "Emerson",
+  "Hayden",
+];
+
+const LAST_NAMES = [
+  "Rivera",
+  "Smith",
+  "Chen",
+  "Blake",
+  "Davis",
+  "Johnson",
+  "Williams",
+  "Jones",
+  "Garcia",
+  "Miller",
+  "Rodriguez",
+  "Martinez",
+  "Hernandez",
+  "Lopez",
+  "Gonzalez",
+  "Wilson",
+  "Anderson",
+  "Thomas",
+  "Taylor",
+  "Moore",
+  "Jackson",
+  "Martin",
+];
+
+function createSeedFromDate(date = new Date()) {
+  return Number(
+    `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(
+      date.getUTCDate(),
+    ).padStart(2, "0")}`,
+  );
+}
+
+function createDailyRandom(seedInput) {
+  let seed = seedInput % 2147483647;
+  if (seed <= 0) seed += 2147483646;
+  return () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
+}
+
+function shuffleWithSeed(items, random) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+  }
+  return copy;
+}
+
+function buildDailyLeaderboard(date = new Date()) {
+  const seed = createSeedFromDate(date);
+  const random = createDailyRandom(seed);
+  const names = shuffleWithSeed(
+    FIRST_NAMES.map((firstName, index) => {
+      const lastName = LAST_NAMES[(index + seed) % LAST_NAMES.length];
+      return `${firstName} ${lastName}`;
+    }),
+    random,
+  );
+
+  const pointsBase = 1800 + (seed % 500);
+  const shuffledPoints = shuffleWithSeed(
+    Array.from({ length: 5 }, (_, index) => pointsBase + index * 120),
+    random,
+  );
+
+  return names.slice(0, 5).map((name, index) => {
+    const avatar = name
+      .split(" ")
+      .map((part) => part[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+
+    return {
+      rank: index + 1,
+      name,
+      points: shuffledPoints[index],
+      avatar,
+      change: `+${Math.floor(60 + random() * 340)}`,
+    };
+  });
+}
+
 const DailyLeaderboard = ({ theme }) => {
   const isDark = theme === "dark";
 
   // Leaderboard state - fetched from backend
-  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [leaderboardData, setLeaderboardData] = useState(() =>
+    buildDailyLeaderboard(),
+  );
 
   const [dailyStats, setDailyStats] = useState({
     newRegistrations: 24,
@@ -44,15 +157,38 @@ const DailyLeaderboard = ({ theme }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Poll leaderboard from backend and update every 15 seconds
+  // Refresh the daily leaderboard at the next UTC midnight and try the API in dev
   useEffect(() => {
     let mounted = true;
+    const nextReset = () => {
+      const now = new Date();
+      return new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() + 1,
+          0,
+          0,
+          0,
+        ),
+      );
+    };
+
+    const updateFromDailySeed = () => {
+      if (!mounted) return;
+      setLeaderboardData(buildDailyLeaderboard());
+    };
 
     const fetchLeaderboard = async () => {
       try {
-        const API_BASE = import.meta.env.DEV ? "http://localhost:5000" : "";
+        if (!import.meta.env.DEV) return;
+
+        const API_BASE = "http://localhost:5000";
         const res = await fetch(`${API_BASE}/api/leaderboard?limit=5`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          updateFromDailySeed();
+          return;
+        }
         const json = await res.json();
         if (!mounted) return;
         const mapped = (json.data || []).map((u, i) => ({
@@ -71,14 +207,20 @@ const DailyLeaderboard = ({ theme }) => {
         }));
         setLeaderboardData(mapped);
       } catch (e) {
-        // ignore
+        updateFromDailySeed();
       }
     };
 
     fetchLeaderboard();
-    const poll = setInterval(fetchLeaderboard, 15000);
+    const timeout = setTimeout(() => {
+      updateFromDailySeed();
+      fetchLeaderboard();
+    }, nextReset().getTime() - Date.now());
+
+    const poll = setInterval(fetchLeaderboard, import.meta.env.DEV ? 15000 : 60000);
     return () => {
       mounted = false;
+      clearTimeout(timeout);
       clearInterval(poll);
     };
   }, []);
