@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 
 import userRoutes from "./api/users";
 import tasksGameRoutes from "./api/tasks-games";
+import leaderboardRoutes from "./api/leaderboard";
 
 dotenv.config();
 
@@ -19,9 +20,10 @@ const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/skyx";
 
 // ============ MIDDLEWARE ============
 
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: FRONTEND_URL,
     credentials: true,
   }),
 );
@@ -46,6 +48,7 @@ app.get("/health", (req: Request, res: Response) => {
 app.use("/api/users", userRoutes);
 app.use("/api/tasks", tasksGameRoutes);
 app.use("/api/games", tasksGameRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

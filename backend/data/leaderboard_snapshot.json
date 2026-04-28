@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-04-28T20:37:13.634Z",
+  "users": [
+    {
+      "_id": "random-0",
+      "name": "Madison Chen",
+      "points": 2500,
+      "avatar": "MC"
+    },
+    {
+      "_id": "random-4",
+      "name": "Casey Williams",
+      "points": 2508,
+      "avatar": "CW"
+    },
+    {
+      "_id": "random-2",
+      "name": "Blake Davis",
+      "points": 2504,
+      "avatar": "BD"
+    },
+    {
+      "_id": "random-3",
+      "name": "Drew Johnson",
+      "points": 2506,
+      "avatar": "DJ"
+    },
+    {
+      "_id": "random-1",
+      "name": "Jordan Blake",
+      "points": 2502,
+      "avatar": "JB"
+    }
+  ]
+}

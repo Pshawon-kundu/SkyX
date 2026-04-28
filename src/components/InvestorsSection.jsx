@@ -246,16 +246,12 @@ function InvestorsSection({ theme = "dark" }) {
   };
 
   const investors = [
-    { name: "a16z Crypto", logo: LogoA16Z },
-    { name: "Paradigm", logo: LogoParadigm },
-    { name: "Pantera Capital", logo: LogoPantera },
-    { name: "Multicoin Capital", logo: LogoMulticoin },
-    { name: "Coinbase Ventures", logo: LogoCoinbase },
-    { name: "Binance Labs", logo: LogoBinance },
-    { name: "Animoca Brands", logo: LogoAnimoca },
-    { name: "Electric Capital", logo: LogoElectric },
-    { name: "Framework Ventures", logo: LogoFramework },
-    { name: "Dragonfly Capital", logo: LogoDragonfly },
+    { name: "Vantec Angel Network", logo: LogoA16Z },
+    { name: "Mantella Venture Partners", logo: LogoParadigm },
+    { name: "Inovia Capital", logo: LogoPantera },
+    { name: "Backed VC", logo: LogoMulticoin },
+    { name: "Skyland Ventures", logo: LogoCoinbase },
+    { name: "B Strategy", logo: LogoBinance },
   ];
 
   return (
@@ -291,14 +287,14 @@ function InvestorsSection({ theme = "dark" }) {
                 isDark ? "text-white" : "text-slate-900"
               }`}
             >
-              Strategic Investors & Ecosystem Alignment
+              🏦 Investors & Backing
             </h2>
             <p
               className={`text-lg sm:text-xl ${isDark ? "text-slate-300" : "text-slate-600"}`}
             >
-              SkyX is designed for collaboration with leading Web3, AI, and
-              venture capital firms actively investing in next-generation
-              infrastructure and tokenized ecosystems.
+              SkyX is backed by leading VCs and institutional investors who
+              provide capital, domain expertise, and strategic partnerships
+              across fintech and Web3.
             </p>
           </Motion.div>
 
@@ -311,7 +307,7 @@ function InvestorsSection({ theme = "dark" }) {
                   isDark ? "text-purple-300" : "text-purple-600"
                 }`}
               >
-                Target Investors & Ecosystem Alignment
+                Our Backers
               </p>
             </div>
 

@@ -5,38 +5,8 @@ import { animations } from "../data/animations";
 const DailyLeaderboard = ({ theme }) => {
   const isDark = theme === "dark";
 
-  // Mock data - In production, fetch from your backend API
-  const [leaderboardData, setLeaderboardData] = useState([
-    {
-      rank: 1,
-      name: "Alex Rivera",
-      points: 2840,
-      avatar: "AR",
-      change: "+240",
-    },
-    {
-      rank: 2,
-      name: "Jordan Smith",
-      points: 2620,
-      avatar: "JS",
-      change: "+180",
-    },
-    {
-      rank: 3,
-      name: "Taylor Chen",
-      points: 2440,
-      avatar: "TC",
-      change: "+350",
-    },
-    {
-      rank: 4,
-      name: "Morgan Blake",
-      points: 2180,
-      avatar: "MB",
-      change: "+120",
-    },
-    { rank: 5, name: "Casey Davis", points: 1960, avatar: "CD", change: "+95" },
-  ]);
+  // Leaderboard state - fetched from backend
+  const [leaderboardData, setLeaderboardData] = useState([]);
 
   const [dailyStats, setDailyStats] = useState({
     newRegistrations: 24,
@@ -49,21 +19,68 @@ const DailyLeaderboard = ({ theme }) => {
     minutes: 42,
   });
 
-  // Simulate countdown timer
+  // Compute countdown to next UTC midnight
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev.minutes === 0 && prev.hours === 0) {
-          return { hours: 23, minutes: 59 };
-        }
-        if (prev.minutes === 0) {
-          return { hours: prev.hours - 1, minutes: 59 };
-        }
-        return { ...prev, minutes: prev.minutes - 1 };
-      });
-    }, 60000); // Update every minute
+    const updateCountdown = () => {
+      const now = new Date();
+      const next = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() + 1,
+          0,
+          0,
+          0,
+        ),
+      );
+      const diff = next.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      setTimeRemaining({ hours, minutes });
+    };
 
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Poll leaderboard from backend and update every 15 seconds
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchLeaderboard = async () => {
+      try {
+        const API_BASE = import.meta.env.DEV ? "http://localhost:5000" : "";
+        const res = await fetch(`${API_BASE}/api/leaderboard?limit=5`);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!mounted) return;
+        const mapped = (json.data || []).map((u, i) => ({
+          rank: i + 1,
+          name: u.name,
+          points: u.points,
+          avatar:
+            u.avatar ||
+            (u.name || "")
+              .split(" ")
+              .map((s) => s[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase(),
+          change: "+" + Math.floor(Math.random() * 400),
+        }));
+        setLeaderboardData(mapped);
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    fetchLeaderboard();
+    const poll = setInterval(fetchLeaderboard, 15000);
+    return () => {
+      mounted = false;
+      clearInterval(poll);
+    };
   }, []);
 
   const containerVariants = {
@@ -261,7 +278,7 @@ const DailyLeaderboard = ({ theme }) => {
             <AnimatePresence>
               {leaderboardData.map((user, idx) => (
                 <Motion.div
-                  key={user.rank}
+                  key={user.rank || user.name || idx}
                   variants={itemVariants}
                   initial="hidden"
                   whileInView="visible"
