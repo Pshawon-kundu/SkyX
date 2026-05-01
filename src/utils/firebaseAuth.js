@@ -12,50 +12,49 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
-};
+// Check if Firebase config is available
+const hasValidConfig =
+  import.meta.env.VITE_FIREBASE_API_KEY &&
+  import.meta.env.VITE_FIREBASE_PROJECT_ID &&
+  import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 
-// Initialize Firebase with error handling
+export const firebaseConfigError = !hasValidConfig
+  ? "Firebase credentials not configured on this server. Authentication features will be unavailable."
+  : null;
+
 let app;
-let firebaseInitError = null;
+let auth = null;
+let googleProvider = null;
 
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  console.error("Firebase init failed:", error);
-  firebaseInitError = error.message;
-  // Create a dummy app to prevent crashes
+// Only initialize Firebase if we have valid config
+if (hasValidConfig) {
   try {
-    app = initializeApp({
-      projectId: "dummy",
-      apiKey: "dummy-key",
-      authDomain: "dummy.firebaseapp.com",
-    });
-  } catch (e) {
-    // Silent fallback
+    const firebaseConfig = {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+    };
+
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+
+    console.log("✓ Firebase initialized successfully");
+  } catch (error) {
+    console.warn("⚠ Firebase initialization failed:", error.message);
+    auth = null;
+    googleProvider = null;
   }
+} else {
+  console.warn("⚠ Firebase credentials not configured - using demo mode");
 }
 
-export const auth = app ? getAuth(app) : null;
-
-// Google Auth Provider
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: "select_account" });
-
-// Get auth config error (if any)
-export const firebaseConfigError =
-  firebaseInitError ||
-  (!import.meta.env.VITE_FIREBASE_API_KEY
-    ? "Firebase is not configured. Add VITE_FIREBASE_API_KEY and other Firebase credentials to .env.local"
-    : null);
+export { auth, googleProvider };
 
 // Auth event constant
 export const AUTH_CHANGED_EVENT = "firebase-auth-changed";
@@ -88,9 +87,9 @@ export const clearStoredAuth = () => {
 export const signUpWithEmail = async (email, password, displayName) => {
   try {
     if (!auth) {
-      throw new Error("Firebase not configured. Check your environment variables.");
+      return { success: false, error: firebaseConfigError || "Firebase not available. Please try again later." };
     }
-    
+
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -136,9 +135,9 @@ export const signUpWithEmail = async (email, password, displayName) => {
 export const signInWithEmail = async (email, password) => {
   try {
     if (!auth) {
-      throw new Error("Firebase not configured. Check your environment variables.");
+      return { success: false, error: firebaseConfigError || "Firebase not available. Please try again later." };
     }
-    
+
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -179,6 +178,10 @@ export const signInWithEmail = async (email, password) => {
 // Sign in with Google
 export const signInWithGoogle = async () => {
   try {
+    if (!auth || !googleProvider) {
+      return { success: false, error: firebaseConfigError || "Firebase not available" };
+    }
+    
     const result = await signInWithPopup(auth, googleProvider);
     const idToken = await result.user.getIdToken();
 
@@ -203,6 +206,9 @@ export const signInWithGoogle = async () => {
 // Send password reset email
 export const resetPassword = async (email) => {
   try {
+    if (!auth) {
+      return { success: false, error: firebaseConfigError || "Firebase not available" };
+    }
     await sendPasswordResetEmail(auth, email);
     return { success: true };
   } catch (error) {
@@ -213,6 +219,9 @@ export const resetPassword = async (email) => {
 // Confirm password reset
 export const confirmReset = async (code, newPassword) => {
   try {
+    if (!auth) {
+      return { success: false, error: firebaseConfigError || "Firebase not available" };
+    }
     await confirmPasswordReset(auth, code, newPassword);
     return { success: true };
   } catch (error) {
@@ -223,16 +232,26 @@ export const confirmReset = async (code, newPassword) => {
 // Sign out
 export const logOut = async () => {
   try {
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
     clearStoredAuth();
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.message };
+    clearStoredAuth();
+    return { success: true }; // Clear local auth even if Firebase fails
   }
 };
 
 // Listen to auth state changes
 export const onAuthStateChangeListener = (callback) => {
+  if (!auth) {
+    // Firebase not available - check localStorage for stored auth
+    const storedAuth = getStoredAuth();
+    callback(storedAuth);
+    return () => {}; // Return empty unsubscribe function
+  }
+  
   return onAuthStateChanged(auth, async (user) => {
     if (user) {
       const idToken = await user.getIdToken();
