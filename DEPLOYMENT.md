@@ -3,12 +3,14 @@
 ## Quick Deploy Status Check
 
 Your domain **skyx.finance** is showing blank because:
+
 1. Environment variables are not set on Vercel
 2. OR the deployment hasn't completed yet
 
 ## ✅ Fix: Set Environment Variables on Vercel
 
 ### Step 1: Go to Vercel Dashboard
+
 1. Visit [vercel.com/dashboard](https://vercel.com/dashboard)
 2. Click on your **SkyX** project
 3. Go to **Settings** → **Environment Variables**
@@ -31,11 +33,13 @@ VITE_API_BASE_URL=https://your-backend-url.com
 ```
 
 ### Step 3: Trigger Redeploy
+
 1. After adding variables, go to **Deployments**
 2. Find the latest deployment
 3. Click the **⋮** (three dots) → **Redeploy**
 
 ### Step 4: Check Domain DNS
+
 If still blank after redeploy:
 
 1. Go to **Settings** → **Domains**
@@ -47,6 +51,7 @@ If still blank after redeploy:
 ## 🔍 Verify Deployment
 
 After redeploy, check:
+
 ```
 ✅ https://skyx.finance/ → Should show SkyX homepage
 ✅ https://skyx.finance/login → Should show login page
@@ -54,6 +59,7 @@ After redeploy, check:
 ```
 
 ## 📋 What Changed
+
 - ✅ Pushed all auth & profile code to GitHub
 - ✅ `vercel.json` configured for Vite
 - ✅ Build outputs to `dist/` directory
@@ -62,16 +68,19 @@ After redeploy, check:
 ## 🛠️ If Still Not Working
 
 ### Check Build Logs:
+
 1. Vercel Dashboard → Deployments
 2. Click the failed/building deployment
 3. View **Build Logs** for errors
 
 ### Common Issues:
+
 - **403 Forbidden** → DNS not updated yet (wait 5-10 mins)
 - **Blank Page** → Missing env vars (add them above)
 - **404 Not Found** → Deployment incomplete (redeploy)
 
 ## 📞 Support
+
 - Vercel Docs: https://vercel.com/docs
 - Domain Help: https://vercel.com/docs/concepts/projects/domains
 - Firebase: https://console.firebase.google.com

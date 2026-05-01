@@ -23,18 +23,39 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+// Initialize Firebase with error handling
+let app;
+let firebaseInitError = null;
+
+try {
+  app = initializeApp(firebaseConfig);
+} catch (error) {
+  console.error("Firebase init failed:", error);
+  firebaseInitError = error.message;
+  // Create a dummy app to prevent crashes
+  try {
+    app = initializeApp({
+      projectId: "dummy",
+      apiKey: "dummy-key",
+      authDomain: "dummy.firebaseapp.com",
+    });
+  } catch (e) {
+    // Silent fallback
+  }
+}
+
+export const auth = app ? getAuth(app) : null;
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
 // Get auth config error (if any)
-export const firebaseConfigError = !import.meta.env.VITE_FIREBASE_API_KEY
-  ? "Firebase is not configured. Add VITE_FIREBASE_API_KEY and other Firebase credentials to .env.local"
-  : null;
+export const firebaseConfigError =
+  firebaseInitError ||
+  (!import.meta.env.VITE_FIREBASE_API_KEY
+    ? "Firebase is not configured. Add VITE_FIREBASE_API_KEY and other Firebase credentials to .env.local"
+    : null);
 
 // Auth event constant
 export const AUTH_CHANGED_EVENT = "firebase-auth-changed";
@@ -66,6 +87,10 @@ export const clearStoredAuth = () => {
 // Sign up with email and password
 export const signUpWithEmail = async (email, password, displayName) => {
   try {
+    if (!auth) {
+      throw new Error("Firebase not configured. Check your environment variables.");
+    }
+    
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -110,6 +135,10 @@ export const signUpWithEmail = async (email, password, displayName) => {
 // Sign in with email and password
 export const signInWithEmail = async (email, password) => {
   try {
+    if (!auth) {
+      throw new Error("Firebase not configured. Check your environment variables.");
+    }
+    
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
