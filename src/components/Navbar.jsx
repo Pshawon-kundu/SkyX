@@ -217,16 +217,18 @@ function Navbar({
             </button>
             {currentUser ? (
               <div className="flex items-center gap-2">
-                <span
-                  className={`inline-flex max-w-44 items-center gap-2 truncate rounded-full px-3 py-2 text-sm font-medium ${
+                <Link
+                  to="/profile"
+                  className={`inline-flex max-w-44 items-center gap-2 truncate rounded-full px-3 py-2 text-sm font-medium transition ${
                     isDark
-                      ? "bg-slate-900 text-slate-200"
-                      : "bg-purple-50 text-slate-700"
+                      ? "bg-slate-900 text-slate-200 hover:bg-purple-900/50 hover:text-purple-300"
+                      : "bg-purple-50 text-slate-700 hover:bg-purple-100"
                   }`}
+                  title="View your profile"
                 >
                   <UserCircle size={16} className="shrink-0" />
                   <span className="truncate">{currentUser.fullName}</span>
-                </span>
+                </Link>
                 <button
                   type="button"
                   onClick={handleLogout}
@@ -345,18 +347,22 @@ function Navbar({
               <div className="mt-4 space-y-2">
                 {currentUser ? (
                   <div className="grid gap-2">
-                    <div
-                      className={`flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium ${
-                        isDark ? "text-slate-300" : "text-slate-700"
+                    <Link
+                      to="/profile"
+                      onClick={closeMenu}
+                      className={`flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium transition ${
+                        isDark
+                          ? "bg-slate-900 text-slate-300 hover:bg-purple-900/50 hover:text-purple-300"
+                          : "bg-purple-50 text-slate-700 hover:bg-purple-100"
                       }`}
                     >
                       <UserCircle size={16} />
                       <span className="truncate">{currentUser.fullName}</span>
-                    </div>
+                    </Link>
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className={`flex w-full items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium ${isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-600 hover:text-purple-700"}`}
+                      className={`flex w-full items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium ${isDark ? "text-slate-300 hover:text-red-400" : "text-slate-600 hover:text-red-600"}`}
                     >
                       <LogOut size={16} />
                       Sign out

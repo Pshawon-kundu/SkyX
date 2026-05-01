@@ -90,7 +90,20 @@ export const signUpWithEmail = async (email, password, displayName) => {
     persistAuth(authData);
     return { success: true, user: authData };
   } catch (error) {
-    return { success: false, error: error.message };
+    let errorMessage = error.message;
+
+    if (error.code === "auth/email-already-in-use") {
+      errorMessage =
+        "This email is already registered. Please sign in instead.";
+    } else if (error.code === "auth/invalid-email") {
+      errorMessage = "Please enter a valid email address.";
+    } else if (error.code === "auth/weak-password") {
+      errorMessage = "Password should be at least 8 characters.";
+    } else if (error.code === "auth/operation-not-allowed") {
+      errorMessage = "Email/password accounts are not enabled.";
+    }
+
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -116,7 +129,21 @@ export const signInWithEmail = async (email, password) => {
     persistAuth(authData);
     return { success: true, user: authData };
   } catch (error) {
-    return { success: false, error: error.message };
+    // Better error messages
+    let errorMessage = error.message;
+
+    if (error.code === "auth/user-not-found") {
+      errorMessage = "Account not found. Please create a new account.";
+    } else if (
+      error.code === "auth/invalid-password" ||
+      error.code === "auth/invalid-credential"
+    ) {
+      errorMessage = "Invalid email or password. Please try again.";
+    } else if (error.code === "auth/too-many-requests") {
+      errorMessage = "Too many login attempts. Please try again later.";
+    }
+
+    return { success: false, error: errorMessage };
   }
 };
 

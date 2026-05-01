@@ -62,20 +62,31 @@ export default function LoginPage({
           import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
         ).replace(/\/$/, "");
 
-        const response = await fetch(`${API_BASE}/api/users/sync-profile`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firebaseToken: await user.getIdToken(),
-            fullName: user.displayName || name || user.email.split("@")[0],
-          }),
-        });
+        // Try to sync with backend, but don't fail if backend is unavailable
+        try {
+          const response = await fetch(`${API_BASE}/api/users/sync-profile`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              firebaseToken: await user.getIdToken(),
+              fullName: user.displayName || name || user.email.split("@")[0],
+            }),
+          });
 
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.error || "Sync failed");
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            console.warn("Backend sync warning:", data.error || "Sync failed");
+            // Continue anyway - backend is optional
+          }
+        } catch (backendError) {
+          console.warn(
+            "Backend not available, continuing with Firebase auth",
+            backendError,
+          );
+          // Backend is down or unreachable - this is ok, continue with local auth
         }
 
+        // Store auth and proceed regardless of backend sync
         persistAuth({
           user: {
             id: user.uid,
@@ -92,7 +103,7 @@ export default function LoginPage({
 
         window.clearTimeout(redirectTimerRef.current);
         redirectTimerRef.current = window.setTimeout(() => {
-          navigate("/");
+          navigate("/profile");
         }, 500);
       } catch (error) {
         syncingUserRef.current = null;
@@ -118,7 +129,10 @@ export default function LoginPage({
 
       if (authData && authData.user) {
         // User signed in via Firebase
-        await syncProfile({ ...authData.user, getIdToken: () => authData.token });
+        await syncProfile({
+          ...authData.user,
+          getIdToken: () => authData.token,
+        });
       }
     });
 
@@ -192,7 +206,11 @@ export default function LoginPage({
             type: "success",
             text: "Account created successfully!",
           });
-          window.setTimeout(() => navigate("/"), 500);
+          // Redirect to profile after signup
+          window.clearTimeout(redirectTimerRef.current);
+          redirectTimerRef.current = window.setTimeout(() => {
+            navigate("/profile");
+          }, 500);
         } else {
           setMessage({
             type: "error",
@@ -204,7 +222,11 @@ export default function LoginPage({
         const result = await signInWithEmail(email, password);
         if (result.success) {
           setMessage({ type: "success", text: "Signed in successfully." });
-          window.setTimeout(() => navigate("/"), 500);
+          // Redirect to profile after login
+          window.clearTimeout(redirectTimerRef.current);
+          redirectTimerRef.current = window.setTimeout(() => {
+            navigate("/profile");
+          }, 500);
         } else {
           setMessage({
             type: "error",
@@ -387,7 +409,11 @@ export default function LoginPage({
                 className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium bg-purple-600 text-white hover:bg-purple-700"
                 type="button"
               >
-                {isResetMode ? "Back to sign in" : (mode === "login" ? "Create account" : "Back to sign in")}
+                {isResetMode
+                  ? "Back to sign in"
+                  : mode === "login"
+                    ? "Create account"
+                    : "Back to sign in"}
               </button>
             </div>
           </div>
@@ -431,36 +457,6 @@ export default function LoginPage({
                     </svg>
                     <span className="text-sm">Continue with Google</span>
                   </button>
-
-                  <button
-                    onClick={() => handleSocial("X")}
-                    className="flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 bg-slate-800 text-sm font-medium hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    type="button"
-                    aria-label="Sign in with X (coming soon)"
-                    disabled={true}
-                    title="X/Twitter sign-in coming soon"
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.968 6.817H1.68l7.73-8.835L1.254 2.25h6.826l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    <span className="text-sm">Continue with X (Coming soon)</span>
-                  </button>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-transparent px-3 text-sm text-slate-400">
-                    or
-                  </div>
-                  <div className="h-px bg-slate-300/10" />
                 </div>
               </>
             )}
@@ -533,18 +529,19 @@ export default function LoginPage({
                       aria-label="Password"
                       type={showPassword ? "text" : "password"}
                     />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="inline-flex items-center p-1 text-slate-400"
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="inline-flex items-center p-1 text-slate-400"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </label>
+              )}
 
               {mode === "login" && (
                 <div className="flex items-center justify-between text-sm">
@@ -617,22 +614,82 @@ export default function LoginPage({
               }}
               className="sm:hidden text-center text-sm font-medium text-purple-300"
             >
-              {isResetMode ? "Back to sign in" : (mode === "login" ? "Create account" : "Back to sign in")}
+              {isResetMode
+                ? "Back to sign in"
+                : mode === "login"
+                  ? "Create account"
+                  : "Back to sign in"}
             </button>
 
             {message && (
-              <div
-                className={`mt-2 rounded-md px-4 py-2 text-sm ${message.type === "error" ? (theme === "dark" ? "bg-red-800/60 text-red-100" : "bg-red-100 text-red-800") : theme === "dark" ? "bg-emerald-800/40 text-emerald-100" : "bg-emerald-100 text-emerald-800"}`}
+              <Motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`mt-3 rounded-lg px-4 py-3 text-sm ${
+                  message.type === "error"
+                    ? theme === "dark"
+                      ? "bg-red-900/40 border border-red-700/60 text-red-100"
+                      : "bg-red-100/80 border border-red-300 text-red-800"
+                    : theme === "dark"
+                      ? "bg-emerald-900/40 border border-emerald-700/60 text-emerald-100"
+                      : "bg-emerald-100/80 border border-emerald-300 text-emerald-800"
+                }`}
               >
-                {message.text}
-              </div>
+                <div className="flex items-start gap-2">
+                  <div className="flex-1">{message.text}</div>
+                </div>
+                {message.type === "error" &&
+                  mode === "login" &&
+                  message.text.includes("not found") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("signup");
+                        resetMessage();
+                      }}
+                      className={`mt-2 text-xs font-semibold underline ${
+                        theme === "dark"
+                          ? "text-red-200 hover:text-red-100"
+                          : "text-red-700 hover:text-red-900"
+                      }`}
+                    >
+                      Create a new account →
+                    </button>
+                  )}
+              </Motion.div>
             )}
 
-            <div className="pt-2 text-center text-xs text-slate-400">
+            <div className="pt-3 text-center text-xs text-slate-400">
               By continuing you agree to our{" "}
               <a className="text-purple-300 underline">Terms</a> and{" "}
               <a className="text-purple-300 underline">Privacy</a>.
             </div>
+
+            {mode === "login" && (
+              <div
+                className={`mt-4 rounded-lg p-3 text-xs ${
+                  theme === "dark"
+                    ? "bg-slate-800/50 border border-slate-700/50 text-slate-300"
+                    : "bg-slate-100 border border-slate-300 text-slate-600"
+                }`}
+              >
+                <p className="font-semibold mb-2">💡 First time here?</p>
+                <p className="mb-2">
+                  Create a new account using the "Create account" button or sign
+                  up with Google.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signup");
+                    resetMessage();
+                  }}
+                  className="text-purple-400 hover:text-purple-300 font-semibold underline"
+                >
+                  Create account →
+                </button>
+              </div>
+            )}
           </div>
         </Motion.div>
       </div>

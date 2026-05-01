@@ -2,8 +2,18 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useState, useEffect, Suspense, lazy } from "react";
 const Home = lazy(() => import("./pages/Home"));
 const LoginPage = lazy(() => import("./components/LoginPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SplashScreen = lazy(() => import("./components/SplashScreen"));
 import { siteContent } from "./data/siteContent";
+import { getStoredAuth } from "./utils/firebaseAuth";
+
+// Protected Route Component
+function ProtectedRoute({ children, isAuthenticated }) {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -22,6 +32,11 @@ function App() {
       : "light";
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const auth = getStoredAuth();
+    return !!auth?.user;
+  });
+
   useEffect(() => {
     if (!showSplash) {
       document.body.style.overflow = "unset";
@@ -35,6 +50,17 @@ function App() {
     document.documentElement.style.colorScheme = theme;
     window.localStorage.setItem("skyx-theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      const auth = getStoredAuth();
+      setIsAuthenticated(!!auth?.user);
+    };
+
+    window.addEventListener("firebase-auth-changed", handleAuthChange);
+    return () =>
+      window.removeEventListener("firebase-auth-changed", handleAuthChange);
+  }, []);
 
   const handleThemeToggle = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
@@ -67,6 +93,14 @@ function App() {
                 theme={theme}
                 onThemeToggle={handleThemeToggle}
               />
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                <ProfilePage theme={theme} onThemeToggle={handleThemeToggle} />
+              </ProtectedRoute>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
