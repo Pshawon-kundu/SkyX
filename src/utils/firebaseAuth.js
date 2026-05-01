@@ -1,34 +1,43 @@
 // Dynamic Firebase initialization - imported only when needed
 // This prevents Firebase errors at app startup
-// Vercel redeploy trigger
 
-// Firebase configuration - hardcoded fallback
+// Firebase configuration - prioritize env vars, use minimal fallback
 const getConfig = () => ({
   apiKey:
     import.meta.env.VITE_FIREBASE_API_KEY ||
-    "AIzaSyDpZqyR2nzK2P6sXOdUHlQ2GBTZ2Kwi_Dc",
+    "AIzaSyC0PXBvO7LhwDdVvPbJm8gSQ2TS1yVxRnI",
   authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "skyx-74710.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "skyx-74710",
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "skyx-project.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "skyx-project",
   storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
-    "skyx-74710.firebasestorage.app",
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "skyx-project.appspot.com",
   messagingSenderId:
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "939772496272",
-  appId:
-    import.meta.env.VITE_FIREBASE_APP_ID ||
-    "1:939772496272:web:af2dc2e03ecd430ca20b15",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-7Y7G27LR25",
+    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-XXXXX",
 });
 
 let firebaseInitialized = false;
+let firebaseInitializing = false;
 let firebaseError = null;
 let authInstance = null;
 
 // Initialize Firebase on first use (NOT at module load time) - using dynamic imports
 async function initializeFirebase() {
   if (firebaseInitialized) return authInstance;
-  firebaseInitialized = true;
+  if (firebaseInitializing) {
+    // Wait for ongoing initialization
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (firebaseInitialized) {
+          clearInterval(checkInterval);
+          resolve(authInstance);
+        }
+      }, 100);
+    });
+  }
+
+  firebaseInitializing = true;
 
   try {
     const { initializeApp } = await import("firebase/app");
@@ -36,10 +45,15 @@ async function initializeFirebase() {
 
     const app = initializeApp(getConfig());
     authInstance = getAuth(app);
+    firebaseInitialized = true;
+    firebaseInitializing = false;
     return authInstance;
   } catch (error) {
-    console.error("Firebase init error:", error?.message || error);
+    console.warn("Firebase initialization warning:", error?.message || error);
     firebaseError = error?.message || String(error);
+    firebaseInitialized = true;
+    firebaseInitializing = false;
+    // Don't throw - return null to allow app to continue
     return null;
   }
 }
