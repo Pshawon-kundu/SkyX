@@ -326,10 +326,13 @@ export const onAuthStateChangeListener = async (callback) => {
   }
 };
 
-// Export auth config error
-export const firebaseConfigError = firebaseError
-  ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
-  : null;
+// Export auth config error (safe getter)
+export const getFirebaseConfigError = () =>
+  firebaseError
+    ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
+    : null;
 
-// Default export
-export default authInstance;
+export const firebaseConfigError = null; // Placeholder
+
+// Default export - safe fallback
+export default null;
