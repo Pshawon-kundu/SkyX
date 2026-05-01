@@ -54,6 +54,7 @@ export interface IUser {
   lastLoginAt?: Date;
   kycStatus?: "pending" | "verified" | "rejected";
   walletAddress?: string;
+  supabaseId?: string;
 }
 
 export interface IReferral {
@@ -162,6 +163,27 @@ export interface CreateUserDTO {
   walletAddress?: string;
 }
 
+export interface LoginDTO {
+  email: string;
+  password: string;
+}
+
+export interface AuthUserDTO {
+  id: string;
+  email: string;
+  fullName: string;
+  referralCode: string;
+  points: number;
+  tierLevel: number;
+  createdAt: Date;
+  lastLoginAt?: Date;
+}
+
+export interface AuthResponseDTO {
+  token: string;
+  user: AuthUserDTO;
+}
+
 export interface CompleteTaskDTO {
   taskId: string;
   proofUrl?: string;
@@ -175,4 +197,16 @@ export interface CreateGameSessionDTO {
 
 export interface ReferralRewardClaimDTO {
   referralId: string;
+}
+
+export interface SyncProfileDTO {
+  supabaseId: string;
+  email: string;
+  fullName: string;
+}
+
+export interface SupabaseLoginDTO {
+  provider: "email" | "google" | "twitter";
+  email?: string;
+  accessToken: string;
 }

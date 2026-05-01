@@ -35,6 +35,7 @@ const userSchema = new Schema<IUser & Document>(
     },
     passwordHash: {
       type: String,
+      select: false,
       // Optional if using OAuth
     },
     referralCode: {
@@ -89,6 +90,12 @@ const userSchema = new Schema<IUser & Document>(
       unique: true,
       sparse: true,
     },
+    supabaseId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -101,7 +108,7 @@ userSchema.index({ referralCode: 1 });
 userSchema.index({ totalPointsEarned: -1 }); // For leaderboard
 
 // ============ REFERRAL MODEL ============
-const referralSchema = new Schema<IReferral & Document>(
+const referralSchema = new Schema<any>(
   {
     referrerId: {
       type: Schema.Types.ObjectId,
@@ -201,7 +208,7 @@ const taskSchema = new Schema<ITask & Document>(
 );
 
 // ============ TASK COMPLETION MODEL ============
-const taskCompletionSchema = new Schema<ITaskCompletion & Document>(
+const taskCompletionSchema = new Schema<any>(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -246,7 +253,7 @@ const taskCompletionSchema = new Schema<ITaskCompletion & Document>(
 taskCompletionSchema.index({ userId: 1, taskId: 1 }, { unique: true });
 
 // ============ GAME SESSION MODEL ============
-const gameSessionSchema = new Schema<IGameSession & Document>(
+const gameSessionSchema = new Schema<any>(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -289,7 +296,7 @@ const gameSessionSchema = new Schema<IGameSession & Document>(
 );
 
 // ============ REWARD TRANSACTION MODEL ============
-const rewardTransactionSchema = new Schema<IRewardTransaction & Document>(
+const rewardTransactionSchema = new Schema<any>(
   {
     userId: {
       type: Schema.Types.ObjectId,

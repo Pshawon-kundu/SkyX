@@ -299,7 +299,7 @@ export const getGameLeaderboard = async (
   return sessions.map((session, idx) => ({
     rank: idx + 1,
     user: {
-      id: session.userId._id,
+      id: (session.userId as any)._id,
       fullName: (session.userId as any).fullName,
       profileImage: (session.userId as any).profileImage,
     },

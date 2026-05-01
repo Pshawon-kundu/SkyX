@@ -3,16 +3,14 @@
  * Express server configuration and initialization
  */
 
+import "dotenv/config";
 import express, { Express, Request, Response } from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
 
 import userRoutes from "./api/users";
 import tasksGameRoutes from "./api/tasks-games";
 import leaderboardRoutes from "./api/leaderboard";
-
-dotenv.config();
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;

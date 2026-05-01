@@ -217,7 +217,10 @@ const DailyLeaderboard = ({ theme }) => {
       fetchLeaderboard();
     }, nextReset().getTime() - Date.now());
 
-    const poll = setInterval(fetchLeaderboard, import.meta.env.DEV ? 15000 : 60000);
+    const poll = setInterval(
+      fetchLeaderboard,
+      import.meta.env.DEV ? 15000 : 60000,
+    );
     return () => {
       mounted = false;
       clearTimeout(timeout);

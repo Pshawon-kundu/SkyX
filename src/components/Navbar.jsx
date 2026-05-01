@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, MoonStar, Sun, X as XIcon } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+  MoonStar,
+  Sun,
+  UserCircle,
+  X as XIcon,
+} from "lucide-react";
 import {
   motion as Motion,
   AnimatePresence,
   useScroll,
   useSpring,
 } from "framer-motion";
+import {
+  AUTH_CHANGED_EVENT,
+  clearStoredAuth,
+  getStoredAuth,
+  supabase,
+} from "../utils/supabaseAuth";
 
 // Custom SKYX X-type Logo Component
 function SkyXLogo({ isDark }) {
@@ -67,6 +80,7 @@ function Navbar({
   onSectionClick,
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [auth, setAuth] = useState(() => getStoredAuth());
   const { scrollYProgress } = useScroll();
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 200,
@@ -76,6 +90,26 @@ function Navbar({
 
   const closeMenu = () => setIsOpen(false);
   const isDark = theme === "dark";
+  const currentUser = auth?.user;
+
+  useEffect(() => {
+    const refreshAuth = () => setAuth(getStoredAuth());
+
+    window.addEventListener("storage", refreshAuth);
+    window.addEventListener(AUTH_CHANGED_EVENT, refreshAuth);
+    refreshAuth();
+
+    return () => {
+      window.removeEventListener("storage", refreshAuth);
+      window.removeEventListener(AUTH_CHANGED_EVENT, refreshAuth);
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase?.auth.signOut();
+    clearStoredAuth();
+    closeMenu();
+  };
 
   const handleNavClick = (href) => {
     const sectionId = href.replace("#", "");
@@ -169,16 +203,44 @@ function Navbar({
           </ul>
 
           <div className="hidden items-center gap-3 lg:flex">
-            <Link
-              to="/login"
-              className={`px-3 py-2 text-sm font-medium transition ${
-                isDark
-                  ? "text-slate-300 hover:text-cyan-300"
-                  : "text-slate-600 hover:text-purple-600"
-              }`}
-            >
-              Login
-            </Link>
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className={`inline-flex max-w-44 items-center gap-2 truncate rounded-full px-3 py-2 text-sm font-medium ${
+                    isDark
+                      ? "bg-slate-900 text-slate-200"
+                      : "bg-purple-50 text-slate-700"
+                  }`}
+                >
+                  <UserCircle size={16} className="shrink-0" />
+                  <span className="truncate">{currentUser.fullName}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  aria-label="Sign out"
+                  title="Sign out"
+                  className={`inline-flex rounded-lg border p-2 transition ${
+                    isDark
+                      ? "border-purple-400/30 text-purple-300 hover:text-cyan-300"
+                      : "border-purple-400/40 text-purple-700 hover:text-purple-900"
+                  }`}
+                >
+                  <LogOut size={17} />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className={`px-3 py-2 text-sm font-medium transition ${
+                  isDark
+                    ? "text-slate-300 hover:text-cyan-300"
+                    : "text-slate-600 hover:text-purple-600"
+                }`}
+              >
+                Login
+              </Link>
+            )}
             {(() => {
               const appsActive =
                 activeSection === "apps" ||
@@ -269,13 +331,34 @@ function Navbar({
                 ))}
               </ul>
               <div className="mt-4 space-y-2">
-                <Link
-                  to="/login"
-                  onClick={closeMenu}
-                  className={`block w-full text-center rounded px-4 py-2 text-sm font-medium ${isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-600 hover:text-purple-700"}`}
-                >
-                  Login
-                </Link>
+                {currentUser ? (
+                  <div className="grid gap-2">
+                    <div
+                      className={`flex items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium ${
+                        isDark ? "text-slate-300" : "text-slate-700"
+                      }`}
+                    >
+                      <UserCircle size={16} />
+                      <span className="truncate">{currentUser.fullName}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className={`flex w-full items-center justify-center gap-2 rounded px-4 py-2 text-sm font-medium ${isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-600 hover:text-purple-700"}`}
+                    >
+                      <LogOut size={16} />
+                      Sign out
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={closeMenu}
+                    className={`block w-full text-center rounded px-4 py-2 text-sm font-medium ${isDark ? "text-slate-300 hover:text-cyan-300" : "text-slate-600 hover:text-purple-700"}`}
+                  >
+                    Login
+                  </Link>
+                )}
                 <a
                   href="#apps"
                   onClick={closeMenu}

@@ -3,8 +3,11 @@
  * Endpoints for user management, profiles, and general info
  */
 
+import "dotenv/config";
 import express, { Router, Request, Response, NextFunction } from "express";
-import { User, Referral, RewardTransaction } from "../models/index";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { User, RewardTransaction } from "../models/index";
 import {
   generateReferralCode,
   validateReferral,
@@ -15,7 +18,14 @@ import {
 } from "../logic/points-and-referrals";
 import { getUserTaskStats } from "../logic/tasks-and-games";
 import { getUserGameStats } from "../logic/tasks-and-games";
-import { IProfileSummary, CreateUserDTO } from "../types/index";
+import { verifySupabaseToken } from "../utils/supabase";
+import {
+  IProfileSummary,
+  AuthResponseDTO,
+  AuthUserDTO,
+  CreateUserDTO,
+  LoginDTO,
+} from "../types/index";
 
 const router: Router = express.Router();
 
@@ -24,6 +34,73 @@ const router: Router = express.Router();
 interface AuthRequest extends Request {
   userId?: string;
 }
+
+const JWT_SECRET = process.env.JWT_SECRET || "skyx-dev-secret";
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ||
+  process.env.JWT_EXPIRY ||
+  "7d") as jwt.SignOptions["expiresIn"];
+
+const buildAuthUser = (user: any): AuthUserDTO => ({
+  id: user._id.toString(),
+  email: user.email,
+  fullName: user.fullName,
+  referralCode: user.referralCode,
+  points: user.points,
+  tierLevel: user.tierLevel,
+  createdAt: user.createdAt,
+  lastLoginAt: user.lastLoginAt,
+});
+
+const signAuthToken = (userId: string) =>
+  jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+const normalizeProfileName = (value?: string): string | null => {
+  const name = value?.trim();
+  return name && name.length >= 2 ? name : null;
+};
+
+const buildSupabaseFallbackEmail = (supabaseId: string): string => {
+  const safeId = supabaseId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  return `user_${safeId || Date.now()}@supabase.local`;
+};
+
+const buildSupabaseOnlyReferralCode = (supabaseId: string): string => {
+  const safeId = supabaseId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  return `SKY${safeId.slice(-9).padStart(9, "X")}`.slice(0, 12);
+};
+
+const buildSupabaseOnlyAuthUser = (
+  supabaseId: string,
+  email: string,
+  fullName: string,
+): AuthUserDTO => {
+  const now = new Date();
+
+  return {
+    id: supabaseId,
+    email,
+    fullName,
+    referralCode: buildSupabaseOnlyReferralCode(supabaseId),
+    points: 0,
+    tierLevel: 1,
+    createdAt: now,
+    lastLoginAt: now,
+  };
+};
+
+const getAuthToken = (req: Request): string | null => {
+  const header = req.headers.authorization;
+  if (header && header.startsWith("Bearer ")) {
+    return header.slice(7);
+  }
+
+  const token = req.headers["x-auth-token"];
+  if (typeof token === "string" && token.trim()) {
+    return token;
+  }
+
+  return null;
+};
 
 /**
  * Auth middleware - validates JWT/session and attaches userId
@@ -34,11 +111,25 @@ const authenticate = (
   res: Response,
   next: NextFunction,
 ): void => {
-  const userId = req.headers["x-user-id"] as string; // Placeholder - use JWT in production
+  const token = getAuthToken(req);
+
+  if (token) {
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
+      req.userId = payload.userId;
+      next();
+      return;
+    } catch {
+      // Fall through to legacy header support below.
+    }
+  }
+
+  const userId = req.headers["x-user-id"] as string; // Backward compatibility for older clients
   if (!userId) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
+
   req.userId = userId;
   next();
 };
@@ -93,6 +184,8 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const passwordHash = await bcrypt.hash(password, 10);
+
     // Validate referral code if provided
     let referrerId: string | undefined;
     if (referralCode) {
@@ -115,7 +208,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
     const user = await User.create({
       email: email.toLowerCase(),
       fullName,
-      passwordHash: password, // In production: hash with bcrypt
+      passwordHash,
       referralCode: newReferralCode,
       walletAddress,
       referredBy: referrerId,
@@ -125,30 +218,168 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
     let referralBonusApplied = false;
     let bonusPoints = 0;
     if (referrerId) {
-      await processReferralSignUp(referralCode!, email, user._id!.toString());
+      await processReferralSignUp(referralCode!, user._id!.toString(), email);
       referralBonusApplied = true;
       bonusPoints = 50; // Sign-up bonus
     }
 
+    const token = signAuthToken(user._id!.toString());
+    const authUser = buildAuthUser(user);
+
     res.status(201).json({
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        fullName: user.fullName,
-        referralCode: user.referralCode,
-        points: user.points,
-        tierLevel: user.tierLevel,
-        createdAt: user.createdAt,
-      },
+      token,
+      user: authUser,
       referralBonusApplied,
       bonusPoints,
+    } satisfies AuthResponseDTO & {
+      referralBonusApplied: boolean;
+      bonusPoints: number;
     });
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
 });
 
-// ============ USER PROFILE ============
+/**
+ * POST /api/users/login
+ * Authenticate an existing user and return a token.
+ */
+router.post("/login", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, password } = req.body as LoginDTO;
+
+    if (!email || !password) {
+      res.status(400).json({ error: "Email and password are required" });
+      return;
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      "+passwordHash",
+    );
+
+    if (!user || !user.passwordHash) {
+      res.status(401).json({ error: "Invalid email or password" });
+      return;
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatches) {
+      res.status(401).json({ error: "Invalid email or password" });
+      return;
+    }
+
+    user.lastLoginAt = new Date();
+    await user.save();
+
+    const token = signAuthToken(user._id!.toString());
+
+    res.json({
+      token,
+      user: buildAuthUser(user),
+    } satisfies AuthResponseDTO);
+  } catch (error) {
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
+/**
+ * POST /api/users/sync-profile
+ * Sync user profile from Supabase after OAuth/email signup.
+ * Verifies the Supabase token and upserts the user into MongoDB.
+ *
+ * Request body:
+ * {
+ *   "supabaseToken": "jwt_token_from_supabase",
+ *   "fullName": "John Doe"
+ * }
+ */
+router.post(
+  "/sync-profile",
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { supabaseToken, fullName } = req.body;
+
+      if (!supabaseToken) {
+        res.status(400).json({ error: "supabaseToken is required" });
+        return;
+      }
+
+      // Verify Supabase token
+      const supabaseUser = await verifySupabaseToken(supabaseToken);
+      if (!supabaseUser) {
+        res.status(401).json({ error: "Invalid or expired Supabase token" });
+        return;
+      }
+
+      const { userId: supabaseId } = supabaseUser;
+      const supabaseEmail = supabaseUser.email.trim().toLowerCase();
+      const email = supabaseEmail || buildSupabaseFallbackEmail(supabaseId);
+      const requestFullName =
+        typeof fullName === "string" ? fullName : undefined;
+      const incomingFullName =
+        normalizeProfileName(requestFullName) ||
+        normalizeProfileName(supabaseUser.fullName);
+      const resolvedFullName =
+        incomingFullName || email.split("@")[0] || "SkyX User";
+
+      if (User.db.readyState !== 1) {
+        res.json({
+          token: signAuthToken(supabaseId),
+          user: buildSupabaseOnlyAuthUser(supabaseId, email, resolvedFullName),
+          profileSynced: false,
+        } satisfies AuthResponseDTO & { profileSynced: boolean });
+        return;
+      }
+
+      // Check if user already exists by email or supabaseId
+      let user = await User.findOne({
+        $or: [{ email }, { supabaseId }],
+      });
+
+      if (user) {
+        // Update existing user with Supabase ID if not already set
+        if (!user.supabaseId) {
+          user.supabaseId = supabaseId;
+        }
+        if (
+          supabaseEmail &&
+          user.email.endsWith("@supabase.local") &&
+          user.email !== supabaseEmail
+        ) {
+          user.email = supabaseEmail;
+        }
+        if (incomingFullName) {
+          user.fullName = incomingFullName;
+        }
+        user.lastLoginAt = new Date();
+        await user.save();
+      } else {
+        // Create new user
+        const newReferralCode = generateReferralCode(email);
+        user = await User.create({
+          email,
+          fullName: resolvedFullName,
+          supabaseId,
+          referralCode: newReferralCode,
+          points: 0,
+          totalPointsEarned: 0,
+          tierLevel: 1,
+          isActive: true,
+          lastLoginAt: new Date(),
+        });
+      }
+
+      const token = signAuthToken(user._id!.toString());
+
+      res.json({
+        token,
+        user: buildAuthUser(user),
+      } satisfies AuthResponseDTO);
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  },
+);
 
 /**
  * GET /api/users/profile

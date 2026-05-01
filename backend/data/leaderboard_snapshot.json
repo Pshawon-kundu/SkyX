@@ -1,35 +1,35 @@
 {
-  "generatedAt": "2026-04-28T20:37:13.634Z",
+  "generatedAt": "2026-05-01T09:54:50.201Z",
   "users": [
     {
-      "_id": "random-0",
-      "name": "Madison Chen",
-      "points": 2500,
-      "avatar": "MC"
-    },
-    {
       "_id": "random-4",
-      "name": "Casey Williams",
+      "name": "Casey Davis",
       "points": 2508,
-      "avatar": "CW"
-    },
-    {
-      "_id": "random-2",
-      "name": "Blake Davis",
-      "points": 2504,
-      "avatar": "BD"
-    },
-    {
-      "_id": "random-3",
-      "name": "Drew Johnson",
-      "points": 2506,
-      "avatar": "DJ"
+      "avatar": "CD"
     },
     {
       "_id": "random-1",
-      "name": "Jordan Blake",
+      "name": "Jordan Jones",
       "points": 2502,
-      "avatar": "JB"
+      "avatar": "JJ"
+    },
+    {
+      "_id": "random-2",
+      "name": "Blake Garcia",
+      "points": 2504,
+      "avatar": "BG"
+    },
+    {
+      "_id": "random-0",
+      "name": "Madison Williams",
+      "points": 2500,
+      "avatar": "MW"
+    },
+    {
+      "_id": "random-3",
+      "name": "Drew Miller",
+      "points": 2506,
+      "avatar": "DM"
     }
   ]
 }
