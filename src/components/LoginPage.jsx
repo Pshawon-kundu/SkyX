@@ -163,8 +163,56 @@ export default function LoginPage({ isDark = true }) {
     resetMessage();
 
     if (!supabase) {
-      setMessage({ type: "error", text: supabaseConfigError });
-      return;
+      // Fall back to server-side auth endpoints when Supabase client isn't configured
+      // This allows the form to work on domains where VITE_* env vars are not set.
+      try {
+        setLoading(true);
+
+        if (mode === "reset") {
+          setMessage({ type: "error", text: "Password reset is unavailable without Supabase configuration." });
+          setLoading(false);
+          return;
+        }
+
+        if (mode === "signup") {
+          const response = await fetch(`${API_BASE}/api/users/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, fullName: name.trim(), password }),
+          });
+
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(data.error || "Registration failed");
+          }
+
+          persistAuth(data);
+          setMessage({ type: "success", text: "Account created and signed in." });
+          window.setTimeout(() => navigate("/"), 400);
+          return;
+        }
+
+        // login
+        const response = await fetch(`${API_BASE}/api/users/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "Login failed");
+        }
+
+        persistAuth(data);
+        setMessage({ type: "success", text: "Signed in successfully." });
+        window.setTimeout(() => navigate("/"), 400);
+        return;
+      } catch (error) {
+        setMessage({ type: "error", text: error.message || "Authentication failed." });
+      } finally {
+        setLoading(false);
+      }
     }
 
     if (password.length < 8) {
@@ -381,7 +429,7 @@ export default function LoginPage({ isDark = true }) {
                     className={`flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium hover:shadow-sm disabled:opacity-50 ${isDark ? "bg-slate-800 text-white border-slate-700" : "bg-white text-slate-700 border-slate-200"}`}
                     type="button"
                     aria-label="Sign in with Google"
-                    disabled={loading || !supabase}
+                      disabled={loading || !supabase}
                   >
                     <svg
                       className="h-5 w-5"
@@ -413,7 +461,7 @@ export default function LoginPage({ isDark = true }) {
                     className="flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 bg-slate-800 text-sm font-medium hover:shadow-sm disabled:opacity-50"
                     type="button"
                     aria-label="Sign in with X"
-                    disabled={loading || !supabase}
+                      disabled={loading || !supabase}
                   >
                     <svg
                       width="18"
@@ -524,7 +572,7 @@ export default function LoginPage({ isDark = true }) {
                 <button
                   type="submit"
                   className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-                  disabled={loading || !supabase}
+                   disabled={loading}
                 >
                   {loading ? (
                     <span className="inline-flex items-center gap-2">
