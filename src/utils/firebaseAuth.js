@@ -1,5 +1,6 @@
 // Dynamic Firebase initialization - imported only when needed
 // This prevents Firebase errors at app startup
+// Vercel redeploy trigger
 
 // Firebase configuration - hardcoded fallback
 const getConfig = () => ({
