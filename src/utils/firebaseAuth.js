@@ -15,48 +15,64 @@ import {
 // Firebase configuration - use env vars, fallback to defaults
 // Browser API keys are meant to be public, so it's safe to embed them
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDpZqyR2nzK2P6sXOdUHlQ2GBTZ2Kwi_Dc",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "skyx-74710.firebaseapp.com",
+  apiKey:
+    import.meta.env.VITE_FIREBASE_API_KEY ||
+    "AIzaSyDpZqyR2nzK2P6sXOdUHlQ2GBTZ2Kwi_Dc",
+  authDomain:
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "skyx-74710.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "skyx-74710",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "skyx-74710.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "939772496272",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:939772496272:web:af2dc2e03ecd430ca20b15",
+  storageBucket:
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    "skyx-74710.firebasestorage.app",
+  messagingSenderId:
+    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "939772496272",
+  appId:
+    import.meta.env.VITE_FIREBASE_APP_ID ||
+    "1:939772496272:web:af2dc2e03ecd430ca20b15",
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-7Y7G27LR25",
 };
 
-// Initialize Firebase with error handling
-let app;
+// Lazy-load Firebase to prevent errors at module import time
+let app = null;
+let authInstance = null;
 let firebaseInitError = null;
+let initAttempted = false;
 
-try {
-  app = initializeApp(firebaseConfig);
-} catch (error) {
-  console.error("Firebase init failed:", error);
-  firebaseInitError = error.message;
-  // Create a dummy app to prevent crashes
+// Safe initialization function that won't crash
+function initFirebase() {
+  if (initAttempted) return authInstance;
+  initAttempted = true;
+
   try {
-    app = initializeApp({
-      projectId: "dummy",
-      apiKey: "dummy-key",
-      authDomain: "dummy.firebaseapp.com",
-    });
-  } catch (e) {
-    // Silent fallback
+    app = initializeApp(firebaseConfig);
+    authInstance = getAuth(app);
+    return authInstance;
+  } catch (error) {
+    console.error("Firebase initialization failed:", error?.message || error);
+    firebaseInitError = error?.message || String(error);
+    return null;
   }
 }
 
-export const auth = app ? getAuth(app) : null;
+// Get auth instance, initializing if needed
+export const getAuthInstance = () => {
+  if (!initAttempted) {
+    initFirebase();
+  }
+  return authInstance;
+};
+
+// Export auth (will be null until first use)
+export const auth = authInstance;
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
 // Get auth config error (if any)
-export const firebaseConfigError =
-  firebaseInitError ||
-  (!import.meta.env.VITE_FIREBASE_API_KEY
-    ? "Firebase is not configured. Add VITE_FIREBASE_API_KEY and other Firebase credentials to .env.local"
-    : null);
+export const firebaseConfigError = firebaseInitError
+  ? `Firebase Error: ${firebaseInitError}. Authentication may be unavailable.`
+  : null;
 
 // Auth event constant
 export const AUTH_CHANGED_EVENT = "firebase-auth-changed";
@@ -88,14 +104,17 @@ export const clearStoredAuth = () => {
 // Sign up with email and password
 export const signUpWithEmail = async (email, password, displayName) => {
   try {
-    if (!auth) {
-      throw new Error(
-        "Firebase not configured. Check your environment variables.",
-      );
+    const authInst = getAuthInstance();
+    if (!authInst) {
+      return {
+        success: false,
+        error:
+          "Authentication is not available. Please try again later.",
+      };
     }
 
     const userCredential = await createUserWithEmailAndPassword(
-      auth,
+      authInst,
       email,
       password,
     );
@@ -138,14 +157,17 @@ export const signUpWithEmail = async (email, password, displayName) => {
 // Sign in with email and password
 export const signInWithEmail = async (email, password) => {
   try {
-    if (!auth) {
-      throw new Error(
-        "Firebase not configured. Check your environment variables.",
-      );
+    const authInst = getAuthInstance();
+    if (!authInst) {
+      return {
+        success: false,
+        error:
+          "Authentication is not available. Please try again later.",
+      };
     }
 
     const userCredential = await signInWithEmailAndPassword(
-      auth,
+      authInst,
       email,
       password,
     );
@@ -184,7 +206,16 @@ export const signInWithEmail = async (email, password) => {
 // Sign in with Google
 export const signInWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    const authInst = getAuthInstance();
+    if (!authInst) {
+      return {
+        success: false,
+        error:
+          "Authentication is not available. Please try again later.",
+      };
+    }
+
+    const result = await signInWithPopup(authInst, googleProvider);
     const idToken = await result.user.getIdToken();
 
     const authData = {
@@ -208,7 +239,14 @@ export const signInWithGoogle = async () => {
 // Send password reset email
 export const resetPassword = async (email) => {
   try {
-    await sendPasswordResetEmail(auth, email);
+    const authInst = getAuthInstance();
+    if (!authInst) {
+      return {
+        success: false,
+        error: "Authentication is not available.",
+      };
+    }
+    await sendPasswordResetEmail(authInst, email);
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -218,7 +256,14 @@ export const resetPassword = async (email) => {
 // Confirm password reset
 export const confirmReset = async (code, newPassword) => {
   try {
-    await confirmPasswordReset(auth, code, newPassword);
+    const authInst = getAuthInstance();
+    if (!authInst) {
+      return {
+        success: false,
+        error: "Authentication is not available.",
+      };
+    }
+    await confirmPasswordReset(authInst, code, newPassword);
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -228,7 +273,10 @@ export const confirmReset = async (code, newPassword) => {
 // Sign out
 export const logOut = async () => {
   try {
-    await signOut(auth);
+    const authInst = getAuthInstance();
+    if (authInst) {
+      await signOut(authInst);
+    }
     clearStoredAuth();
     return { success: true };
   } catch (error) {
@@ -238,9 +286,16 @@ export const logOut = async () => {
 
 // Listen to auth state changes
 export const onAuthStateChangeListener = (callback) => {
-  return onAuthStateChanged(auth, async (user) => {
+  const authInst = getAuthInstance();
+  if (!authInst) {
+    console.warn("Firebase auth not initialized");
+    callback(null);
+    return () => {};
+  }
+
+  return onAuthStateChanged(authInst, async (user) => {
     if (user) {
-      const idToken = await user.getIdToken();
+      const token = await user.getIdToken();
       const authData = {
         user: {
           id: user.uid,
@@ -248,7 +303,7 @@ export const onAuthStateChangeListener = (callback) => {
           fullName: user.displayName || user.email.split("@")[0],
           photoURL: user.photoURL,
         },
-        token: idToken,
+        token,
       };
       persistAuth(authData);
       callback(authData);
@@ -259,4 +314,4 @@ export const onAuthStateChangeListener = (callback) => {
   });
 };
 
-export default auth;
+export default authInstance;
