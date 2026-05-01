@@ -4,10 +4,80 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>metacrate</title>
+    <meta
+      name="description"
+      content="SkyX is a next-gen gaming ecosystem built for players, operators, and venture builders."
+    />
+    <title>SkyX</title>
+    <style>
+      body {
+        margin: 0;
+        background: #020617;
+      }
+
+      #root {
+        min-height: 100vh;
+      }
+
+      .boot-fallback {
+        min-height: 100vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: #e2e8f0;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.28), transparent 34%),
+          radial-gradient(circle at 80% 18%, rgba(6, 182, 212, 0.18), transparent 32%),
+          #020617;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        width: 100%;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .boot-fallback__mark {
+        width: 80px;
+        height: 80px;
+        display: inline-grid;
+        place-items: center;
+        margin-bottom: 24px;
+        border: 1px solid rgba(168, 85, 247, 0.46);
+        border-radius: 24px;
+        color: #f8fafc;
+        background: linear-gradient(135deg, #7c3aed, #06b6d4);
+        font-size: 40px;
+        font-weight: 800;
+      }
+
+      .boot-fallback h1 {
+        margin: 0 0 12px;
+        font-size: clamp(44px, 10vw, 88px);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      .boot-fallback p {
+        margin: 0 auto;
+        max-width: 560px;
+        color: #cbd5e1;
+        font-size: clamp(17px, 3vw, 22px);
+        line-height: 1.55;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="boot-fallback" aria-label="SkyX loading">
+        <div class="boot-fallback__mark">X</div>
+        <h1>SkyX</h1>
+        <p>Build, play, and earn in a next-gen gaming ecosystem.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

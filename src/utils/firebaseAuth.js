@@ -1,22 +1,9 @@
 // Dynamic Firebase initialization - imported only when needed
 // This prevents Firebase errors at app startup
 
-// Check if Firebase env vars are configured
-const isFirebaseConfigured = () => {
-  return (
-    !!import.meta.env.VITE_FIREBASE_API_KEY &&
-    !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
-    !!import.meta.env.VITE_FIREBASE_PROJECT_ID
-  );
-};
-
-// Firebase configuration - only use if all env vars are properly set
+// Firebase configuration - ONLY use environment variables, NO fallbacks
 const getConfig = () => {
-  if (!isFirebaseConfigured()) {
-    return null;
-  }
-
-  return {
+  const config = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -25,6 +12,15 @@ const getConfig = () => {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
   };
+
+  // Check if all required config values exist
+  const hasValidConfig = config.apiKey && config.authDomain && config.projectId;
+
+  if (!hasValidConfig) {
+    return null;
+  }
+
+  return config;
 };
 
 let firebaseInitialized = false;
@@ -36,25 +32,23 @@ async function initializeFirebase() {
   if (firebaseInitialized) return authInstance;
   firebaseInitialized = true;
 
-  if (!isFirebaseConfigured()) {
-    console.warn("Firebase not configured - using localStorage auth only");
-    return null;
-  }
-
   try {
+    const config = getConfig();
+
+    if (!config) {
+      firebaseError = "Firebase configuration missing. Auth unavailable.";
+      return null;
+    }
+
     const { initializeApp } = await import("firebase/app");
     const { getAuth } = await import("firebase/auth");
-
-    const config = getConfig();
-    if (!config) return null;
 
     const app = initializeApp(config);
     authInstance = getAuth(app);
     return authInstance;
   } catch (error) {
-    console.warn("Firebase initialization skipped:", error?.message || error);
+    console.error("Firebase init error:", error?.message || error);
     firebaseError = error?.message || String(error);
-    authInstance = null;
     return null;
   }
 }
@@ -65,6 +59,11 @@ export async function getAuthInstance() {
     await initializeFirebase();
   }
   return authInstance;
+}
+
+// Check if Firebase is available without initializing
+export function isFirebaseAvailable() {
+  return getConfig() !== null;
 }
 
 // Auth event constant
@@ -327,10 +326,15 @@ export const onAuthStateChangeListener = async (callback) => {
   }
 };
 
-// Export auth config error
-export const firebaseConfigError = firebaseError
-  ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
-  : null;
+// Export auth config error - make it a function to avoid evaluating at module load
+export function getFirebaseConfigError() {
+  return firebaseError
+    ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
+    : null;
+}
+
+// Backward compatibility
+export const firebaseConfigError = null;
 
 // Default export
 export default authInstance;

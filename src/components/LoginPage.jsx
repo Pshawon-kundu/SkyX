@@ -17,9 +17,7 @@ import {
   signUpWithEmail,
   signInWithGoogle,
   resetPassword,
-  logOut,
-  firebaseConfigError,
-  getStoredAuth,
+  getFirebaseConfigError,
   AUTH_CHANGED_EVENT,
   onAuthStateChangeListener,
 } from "../utils/firebaseAuth";
@@ -41,9 +39,10 @@ export default function LoginPage({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState(initialTheme || "dark");
-  const [message, setMessage] = useState(() =>
-    firebaseConfigError ? { type: "error", text: firebaseConfigError } : null,
-  );
+  const [message, setMessage] = useState(() => {
+    const error = getFirebaseConfigError();
+    return error ? { type: "error", text: error } : null;
+  });
   const syncingUserRef = useRef(null);
   const redirectTimerRef = useRef(null);
 
