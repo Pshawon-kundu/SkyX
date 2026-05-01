@@ -5,7 +5,8 @@ const LoginPage = lazy(() => import("./components/LoginPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SplashScreen = lazy(() => import("./components/SplashScreen"));
 import { siteContent } from "./data/siteContent";
-import { getStoredAuth } from "./utils/firebaseAuth";
+// Use Supabase for auth state instead of Firebase to avoid initialization errors
+import { getStoredAuth } from "./utils/supabaseAuth";
 
 // Protected Route Component
 function ProtectedRoute({ children, isAuthenticated }) {
