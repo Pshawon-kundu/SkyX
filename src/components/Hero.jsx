@@ -58,9 +58,16 @@ function Hero({ brand, content, theme }) {
         >
           {/* Brand Badge */}
           <Motion.div variants={itemVariants} className="flex justify-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-5 py-2 backdrop-blur-sm">
-              <Sparkles size={16} className="text-purple-300" />
-              <span className="text-sm font-semibold text-purple-200">
+            <div
+              className={`inline-flex items-center gap-2 rounded-full border backdrop-blur-sm ${isDark ? "border-purple-400/30 bg-gradient-to-r from-purple-500/20 to-pink-500/20" : "border-purple-300/50 bg-gradient-to-r from-purple-400/20 to-pink-400/20"}`}
+            >
+              <Sparkles
+                size={16}
+                className={isDark ? "text-purple-300" : "text-purple-600"}
+              />
+              <span
+                className={`text-sm font-semibold ${isDark ? "text-purple-200" : "text-purple-700"}`}
+              >
                 {brand.name} • {brand.ticker}
               </span>
             </div>
@@ -68,10 +75,14 @@ function Hero({ brand, content, theme }) {
 
           {/* Main Title */}
           <Motion.div variants={itemVariants} className="space-y-4 text-center">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight text-white">
+            <h1
+              className={`text-5xl sm:text-6xl lg:text-7xl font-black leading-tight ${isDark ? "text-white" : "text-slate-900"}`}
+            >
               {content.title}
             </h1>
-            <p className="text-xl sm:text-2xl font-semibold text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text">
+            <p
+              className={`text-xl sm:text-2xl font-semibold ${isDark ? "text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text" : "text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 bg-clip-text"}`}
+            >
               {content.subtitle}
             </p>
             {content.tagline && (
@@ -115,7 +126,10 @@ function Hero({ brand, content, theme }) {
                   <div
                     className={`p-2 rounded-lg flex-shrink-0 ${isDark ? "bg-purple-600/50" : "bg-purple-300/50"}`}
                   >
-                    <IconComponent size={20} className="text-purple-200" />
+                    <IconComponent
+                      size={20}
+                      className={isDark ? "text-purple-200" : "text-purple-700"}
+                    />
                   </div>
                   <span
                     className={`text-sm font-medium ${isDark ? "text-purple-100" : "text-purple-900"}`}

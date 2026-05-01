@@ -202,7 +202,19 @@ function Navbar({
             ))}
           </ul>
 
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="hidden items-center gap-2 lg:flex">
+            <button
+              type="button"
+              onClick={onThemeToggle}
+              aria-label={`Switch to ${isDark ? "light" : "dark"} mode`}
+              className={`inline-flex rounded-lg border p-2 transition ${
+                isDark
+                  ? "border-purple-400/30 text-purple-300 hover:text-cyan-300"
+                  : "border-purple-400/40 text-purple-700 hover:text-purple-900"
+              }`}
+            >
+              {isDark ? <Sun size={18} /> : <MoonStar size={18} />}
+            </button>
             {currentUser ? (
               <div className="flex items-center gap-2">
                 <span
@@ -362,7 +374,7 @@ function Navbar({
                 <a
                   href="#apps"
                   onClick={closeMenu}
-                  className={`block w-full text-center rounded-full bg-purple-600 px-4 py-2 text-sm font-semibold text-white ${isDark ? "" : ""}`}
+                  className={`block w-full text-center rounded-full px-4 py-2 text-sm font-semibold transition ${isDark ? "bg-purple-600 text-white hover:bg-purple-700" : "bg-purple-600 text-white hover:bg-purple-700"}`}
                 >
                   Launch with SkyX
                 </a>

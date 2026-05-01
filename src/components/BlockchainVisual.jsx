@@ -56,25 +56,33 @@ function BlockchainVisual({ theme = "dark" }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.5 }}
-      className="relative mb-8 overflow-hidden rounded-3xl border border-purple-300/20 bg-slate-900/70 p-6 shadow-[0_0_55px_rgba(168,85,247,0.12)] sm:mb-10 sm:p-7"
+      className={`relative mb-8 overflow-hidden rounded-3xl border p-6 shadow-[0_0_55px_rgba(168,85,247,0.12)] sm:mb-10 sm:p-7 ${isDark ? "border-purple-300/20 bg-slate-900/70" : "border-purple-300/40 bg-slate-100/60"}`}
     >
       <div className="pointer-events-none absolute -left-10 top-8 h-40 w-40 rounded-full bg-purple-400/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-14 right-12 h-44 w-44 rounded-full bg-sky-500/20 blur-3xl" />
 
       <div className="relative z-10 flex flex-wrap items-end justify-between gap-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-purple-300">
+          <p
+            className={`text-xs font-semibold uppercase tracking-[0.22em] ${isDark ? "text-purple-300" : "text-purple-600"}`}
+          >
             Chain Activity
           </p>
-          <h3 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+          <h3
+            className={`mt-2 text-2xl font-black sm:text-3xl ${isDark ? "text-white" : "text-slate-900"}`}
+          >
             Live block mesh simulation
           </h3>
-          <p className="mt-2 max-w-xl text-sm text-slate-300">
+          <p
+            className={`mt-2 max-w-xl text-sm ${isDark ? "text-slate-300" : "text-slate-700"}`}
+          >
             Animated transaction lanes and validator nodes visualizing real-time
             settlement flow across the MetaCrate network.
           </p>
         </div>
-        <div className="rounded-full border border-purple-300/35 bg-purple-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] text-purple-200">
+        <div
+          className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.15em] ${isDark ? "border-purple-300/35 bg-purple-400/10 text-purple-200" : "border-purple-400/50 bg-purple-200/30 text-purple-700"}`}
+        >
           12,240 tx / min
         </div>
       </div>

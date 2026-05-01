@@ -31,13 +31,21 @@ const Community = lazy(() => import("../components/Community"));
 const FinalCta = lazy(() => import("../components/FinalCta"));
 const Footer = lazy(() => import("../components/Footer"));
 
-function Home({ content }) {
+function Home({
+  content,
+  theme: initialTheme,
+  onThemeToggle: parentOnThemeToggle,
+}) {
   const sectionIds = useMemo(
     () => content.navLinks.map((link) => link.href.replace("#", "")),
     [content.navLinks],
   );
 
   const [theme, setTheme] = useState(() => {
+    if (initialTheme) {
+      return initialTheme;
+    }
+
     if (typeof window === "undefined") {
       return "dark";
     }
@@ -109,11 +117,13 @@ function Home({ content }) {
           links={content.navLinks}
           activeSection={activeSection}
           theme={theme}
-          onThemeToggle={() =>
-            setTheme((currentTheme) =>
-              currentTheme === "dark" ? "light" : "dark",
-            )
-          }
+          onThemeToggle={() => {
+            const newTheme = theme === "dark" ? "light" : "dark";
+            setTheme(newTheme);
+            if (parentOnThemeToggle) {
+              parentOnThemeToggle();
+            }
+          }}
           onSectionClick={(sectionId) => {
             setActiveSection(sectionId);
             setIgnoreObserverUntil(Date.now() + 800);

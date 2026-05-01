@@ -1,42 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, User, ArrowLeft } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  User,
+  ArrowLeft,
+  Moon,
+  Sun,
+} from "lucide-react";
 import {
   persistAuth,
-  supabase,
-  supabaseConfigError,
-} from "../utils/supabaseAuth";
+  signInWithEmail,
+  signUpWithEmail,
+  signInWithGoogle,
+  resetPassword,
+  logOut,
+  firebaseConfigError,
+  getStoredAuth,
+  AUTH_CHANGED_EVENT,
+  onAuthStateChangeListener,
+} from "../utils/firebaseAuth";
 
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-const API_BASE = (
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
-).replace(/\/$/, "");
-
-function getSessionName(session, fallbackName = "") {
-  const metadata = session?.user?.user_metadata || {};
-  return (
-    metadata.full_name ||
-    metadata.name ||
-    metadata.user_name ||
-    fallbackName.trim() ||
-    session?.user?.email?.split("@")[0] ||
-    "SkyX User"
-  );
-}
-
-function isPasswordRecoveryUrl() {
-  if (typeof window === "undefined") return false;
-
-  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const search = new URLSearchParams(window.location.search);
-  return hash.get("type") === "recovery" || search.get("type") === "recovery";
-}
-
-export default function LoginPage({ isDark = true }) {
+export default function LoginPage({
+  isDark = true,
+  theme: initialTheme,
+  onThemeToggle,
+}) {
   const navigate = useNavigate();
   const [mode, setMode] = useState("login"); // 'login' | 'signup' | 'reset'
   const [email, setEmail] = useState("");
@@ -44,29 +40,34 @@ export default function LoginPage({ isDark = true }) {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState(initialTheme || "dark");
   const [message, setMessage] = useState(() =>
-    supabaseConfigError ? { type: "error", text: supabaseConfigError } : null,
+    firebaseConfigError ? { type: "error", text: firebaseConfigError } : null,
   );
-  const syncingTokenRef = useRef(null);
+  const syncingUserRef = useRef(null);
   const redirectTimerRef = useRef(null);
 
   const resetMessage = () => setMessage(null);
 
   const syncProfile = useCallback(
-    async (session) => {
-      if (!session?.access_token) return;
-      if (syncingTokenRef.current === session.access_token) return;
+    async (user) => {
+      if (!user?.email) return;
+      if (syncingUserRef.current === user.uid) return;
 
-      syncingTokenRef.current = session.access_token;
+      syncingUserRef.current = user.uid;
       setLoading(true);
 
       try {
+        const API_BASE = (
+          import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"
+        ).replace(/\/$/, "");
+
         const response = await fetch(`${API_BASE}/api/users/sync-profile`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            supabaseToken: session.access_token,
-            fullName: getSessionName(session, name),
+            firebaseToken: await user.getIdToken(),
+            fullName: user.displayName || name || user.email.split("@")[0],
           }),
         });
 
@@ -75,7 +76,15 @@ export default function LoginPage({ isDark = true }) {
           throw new Error(data.error || "Sync failed");
         }
 
-        persistAuth(data);
+        persistAuth({
+          user: {
+            id: user.uid,
+            email: user.email,
+            fullName: user.displayName || name || user.email.split("@")[0],
+          },
+          token: await user.getIdToken(),
+        });
+
         setMessage({
           type: "success",
           text: "Signed in successfully.",
@@ -86,7 +95,7 @@ export default function LoginPage({ isDark = true }) {
           navigate("/");
         }, 500);
       } catch (error) {
-        syncingTokenRef.current = null;
+        syncingUserRef.current = null;
         setMessage({
           type: "error",
           text: error.message || "Failed to sync profile.",
@@ -100,55 +109,22 @@ export default function LoginPage({ isDark = true }) {
 
   useEffect(() => () => window.clearTimeout(redirectTimerRef.current), []);
 
-  // Recover persisted sessions and OAuth callbacks after Supabase redirects.
+  // Listen to Firebase auth state changes
   useEffect(() => {
-    if (!supabase) return undefined;
-
     let isMounted = true;
 
-    supabase.auth.getSession().then(({ data, error }) => {
+    const unsubscribe = onAuthStateChangeListener(async (authData) => {
       if (!isMounted) return;
 
-      if (error) {
-        setMessage({
-          type: "error",
-          text: error.message || "Could not restore your session.",
-        });
-        return;
-      }
-
-      if (data.session && !isPasswordRecoveryUrl()) {
-        syncProfile(data.session);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!isMounted) return;
-
-      if (event === "PASSWORD_RECOVERY") {
-        setMode("reset");
-        setLoading(false);
-        setMessage({
-          type: "success",
-          text: "Enter a new password to finish resetting your account.",
-        });
-        return;
-      }
-
-      if (event === "SIGNED_IN" && session && !isPasswordRecoveryUrl()) {
-        await syncProfile(session);
-      }
-
-      if (event === "SIGNED_OUT") {
-        syncingTokenRef.current = null;
+      if (authData && authData.user) {
+        // User signed in via Firebase
+        await syncProfile({ ...authData.user, getIdToken: () => authData.token });
       }
     });
 
     return () => {
       isMounted = false;
-      subscription.unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, [syncProfile]);
 
@@ -156,137 +132,84 @@ export default function LoginPage({ isDark = true }) {
     e.preventDefault();
     resetMessage();
 
-    if (!supabase) {
-      // Fall back to server-side auth endpoints when Supabase client isn't configured
-      // This allows the form to work on domains where VITE_* env vars are not set.
-      try {
-        setLoading(true);
+    try {
+      setLoading(true);
 
-        if (mode === "reset") {
+      if (mode === "reset") {
+        // For reset mode, just send the password reset email
+        if (!validateEmail(email)) {
           setMessage({
             type: "error",
-            text: "Password reset is unavailable without Supabase configuration.",
+            text: "Please enter a valid email address.",
           });
           setLoading(false);
           return;
         }
 
-        if (mode === "signup") {
-          const response = await fetch(`${API_BASE}/api/users/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, fullName: name.trim(), password }),
-          });
-
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok) {
-            throw new Error(data.error || "Registration failed");
-          }
-
-          persistAuth(data);
+        const result = await resetPassword(email);
+        if (result.success) {
           setMessage({
             type: "success",
-            text: "Account created and signed in.",
+            text: "Password reset link sent to your email. Check your inbox.",
           });
-          window.setTimeout(() => navigate("/"), 400);
-          return;
+          setEmail("");
+          setMode("login");
+        } else {
+          setMessage({
+            type: "error",
+            text: result.error || "Failed to send password reset email.",
+          });
         }
-
-        // login
-        const response = await fetch(`${API_BASE}/api/users/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.error || "Login failed");
-        }
-
-        persistAuth(data);
-        setMessage({ type: "success", text: "Signed in successfully." });
-        window.setTimeout(() => navigate("/"), 400);
+        setLoading(false);
         return;
-      } catch (error) {
+      }
+
+      if (password.length < 8) {
         setMessage({
           type: "error",
-          text: error.message || "Authentication failed.",
+          text: "Password must be at least 8 characters.",
         });
-      } finally {
         setLoading(false);
+        return;
       }
-    }
 
-    if (password.length < 8) {
-      setMessage({
-        type: "error",
-        text: "Password must be at least 8 characters.",
-      });
-      return;
-    }
-    if (mode !== "reset" && !validateEmail(email)) {
-      setMessage({ type: "error", text: "Please enter a valid email." });
-      return;
-    }
-    if (mode === "signup" && name.trim().length < 2) {
-      setMessage({ type: "error", text: "Please enter your name." });
-      return;
-    }
+      if (!validateEmail(email)) {
+        setMessage({ type: "error", text: "Please enter a valid email." });
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    try {
-      if (mode === "reset") {
-        const { error } = await supabase.auth.updateUser({ password });
-        if (error) throw error;
+      if (mode === "signup" && name.trim().length < 2) {
+        setMessage({ type: "error", text: "Please enter your name." });
+        setLoading(false);
+        return;
+      }
 
-        const { data, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-
-        if (data.session) {
-          await syncProfile(data.session);
-        } else {
+      if (mode === "signup") {
+        const result = await signUpWithEmail(email, password, name.trim());
+        if (result.success) {
           setMessage({
             type: "success",
-            text: "Password updated. You can sign in now.",
+            text: "Account created successfully!",
           });
-          setMode("login");
-          setLoading(false);
-        }
-      } else if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name.trim() },
-          },
-        });
-
-        if (error) throw error;
-        if (data.session) {
-          await syncProfile(data.session);
+          window.setTimeout(() => navigate("/"), 500);
         } else {
           setMessage({
-            type: "success",
-            text: "Check your email to confirm your account.",
+            type: "error",
+            text: result.error || "Signup failed.",
           });
-          setLoading(false);
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-        if (data.session) {
-          await syncProfile(data.session);
+        // login
+        const result = await signInWithEmail(email, password);
+        if (result.success) {
+          setMessage({ type: "success", text: "Signed in successfully." });
+          window.setTimeout(() => navigate("/"), 500);
         } else {
           setMessage({
-            type: "success",
-            text: "Check your email to finish signing in.",
+            type: "error",
+            text: result.error || "Login failed.",
           });
-          setLoading(false);
         }
       }
     } catch (error) {
@@ -294,42 +217,49 @@ export default function LoginPage({ isDark = true }) {
         type: "error",
         text: error.message || "Authentication failed.",
       });
+    } finally {
       setLoading(false);
     }
   };
 
   const handleSocial = async (provider) => {
     resetMessage();
-    if (!supabase) {
-      setMessage({ type: "error", text: supabaseConfigError });
-      return;
-    }
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: provider === "X" ? "twitter" : "google",
-        options: {
-          redirectTo: `${window.location.origin}/login`,
-        },
-      });
-
-      if (error) throw error;
+      if (provider === "Google") {
+        const result = await signInWithGoogle();
+        if (result.success) {
+          setMessage({
+            type: "success",
+            text: "Signed in with Google successfully.",
+          });
+          window.setTimeout(() => navigate("/"), 500);
+        } else {
+          setMessage({
+            type: "error",
+            text: result.error || "Failed to sign in with Google.",
+          });
+        }
+      } else {
+        setMessage({
+          type: "error",
+          text: `${provider} sign-in is not yet supported. Please use email/password or Google.`,
+        });
+      }
     } catch (error) {
       setMessage({
         type: "error",
         text: error.message || `Failed to sign in with ${provider}.`,
       });
+    } finally {
       setLoading(false);
     }
   };
 
   const handlePasswordReset = async () => {
     resetMessage();
-    if (!supabase) {
-      setMessage({ type: "error", text: supabaseConfigError });
-      return;
-    }
+
     if (!validateEmail(email)) {
       setMessage({
         type: "error",
@@ -340,15 +270,18 @@ export default function LoginPage({ isDark = true }) {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
-      });
-
-      if (error) throw error;
-      setMessage({
-        type: "success",
-        text: "Password reset link sent. Check your email.",
-      });
+      const result = await resetPassword(email);
+      if (result.success) {
+        setMessage({
+          type: "success",
+          text: "Password reset link sent. Check your email.",
+        });
+      } else {
+        setMessage({
+          type: "error",
+          text: result.error || "Failed to send password reset email.",
+        });
+      }
     } catch (error) {
       setMessage({
         type: "error",
@@ -379,10 +312,12 @@ export default function LoginPage({ isDark = true }) {
   return (
     <section
       id="login"
-      className={`py-20 sm:py-28 ${isDark ? "bg-slate-900" : "bg-white"}`}
+      className={`py-20 sm:py-28 ${
+        theme === "dark" ? "bg-slate-900" : "bg-white"
+      }`}
     >
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <Link
             to="/"
             className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200"
@@ -390,6 +325,24 @@ export default function LoginPage({ isDark = true }) {
             <ArrowLeft size={16} />
             <span>Back to Home</span>
           </Link>
+          <button
+            onClick={() => {
+              const newTheme = theme === "dark" ? "light" : "dark";
+              setTheme(newTheme);
+              document.documentElement.setAttribute("data-theme", newTheme);
+              window.localStorage.setItem("skyx-theme", newTheme);
+              if (onThemeToggle) onThemeToggle();
+            }}
+            className="inline-flex items-center justify-center rounded-md p-2 hover:bg-slate-200/20 transition-colors"
+            aria-label="Toggle theme"
+            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+          >
+            {theme === "dark" ? (
+              <Sun size={20} className="text-yellow-400" />
+            ) : (
+              <Moon size={20} className="text-slate-700" />
+            )}
+          </button>
         </div>
 
         <Motion.div
@@ -397,28 +350,44 @@ export default function LoginPage({ isDark = true }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.45 }}
-          className={`rounded-3xl border p-8 sm:p-10 ${isDark ? "border-purple-500/10 bg-slate-950/80" : "border-purple-200/40 bg-white/90"}`}
+          className={`rounded-3xl border p-8 sm:p-10 ${
+            theme === "dark"
+              ? "border-purple-500/10 bg-slate-950/80"
+              : "border-purple-200/40 bg-white/90"
+          }`}
         >
           <div className="flex items-center justify-between">
             <div>
               <h2
-                className={`text-2xl font-extrabold ${isDark ? "text-white" : "text-slate-900"}`}
+                className={`text-2xl font-extrabold ${
+                  theme === "dark" ? "text-white" : "text-slate-900"
+                }`}
               >
                 {title}
               </h2>
               <p
-                className={`mt-1 text-sm ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                className={`mt-1 text-sm ${
+                  theme === "dark" ? "text-slate-300" : "text-slate-600"
+                }`}
               >
                 {subtitle}
               </p>
             </div>
             <div className="hidden sm:flex items-center gap-2">
               <button
-                onClick={switchMode}
+                onClick={() => {
+                  if (isResetMode) {
+                    setMode("login");
+                    setPassword("");
+                    resetMessage();
+                  } else {
+                    switchMode();
+                  }
+                }}
                 className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium bg-purple-600 text-white hover:bg-purple-700"
                 type="button"
               >
-                {mode === "login" ? "Create account" : "Back to sign in"}
+                {isResetMode ? "Back to sign in" : (mode === "login" ? "Create account" : "Back to sign in")}
               </button>
             </div>
           </div>
@@ -429,10 +398,14 @@ export default function LoginPage({ isDark = true }) {
                 <div className="grid gap-3">
                   <button
                     onClick={() => handleSocial("Google")}
-                    className={`flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium hover:shadow-sm disabled:opacity-50 ${isDark ? "bg-slate-800 text-white border-slate-700" : "bg-white text-slate-700 border-slate-200"}`}
+                    className={`flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium hover:shadow-sm disabled:opacity-50 ${
+                      theme === "dark"
+                        ? "bg-slate-800 text-white border-slate-700"
+                        : "bg-white text-slate-700 border-slate-200"
+                    }`}
                     type="button"
                     aria-label="Sign in with Google"
-                    disabled={loading || !supabase}
+                    disabled={loading}
                   >
                     <svg
                       className="h-5 w-5"
@@ -461,10 +434,11 @@ export default function LoginPage({ isDark = true }) {
 
                   <button
                     onClick={() => handleSocial("X")}
-                    className="flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 bg-slate-800 text-sm font-medium hover:shadow-sm disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 bg-slate-800 text-sm font-medium hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     type="button"
-                    aria-label="Sign in with X"
-                    disabled={loading || !supabase}
+                    aria-label="Sign in with X (coming soon)"
+                    disabled={true}
+                    title="X/Twitter sign-in coming soon"
                   >
                     <svg
                       width="18"
@@ -478,7 +452,7 @@ export default function LoginPage({ isDark = true }) {
                         fill="currentColor"
                       />
                     </svg>
-                    <span className="text-sm">Continue with X</span>
+                    <span className="text-sm">Continue with X (Coming soon)</span>
                   </button>
                 </div>
 
@@ -525,24 +499,40 @@ export default function LoginPage({ isDark = true }) {
                 </label>
               )}
 
-              <label className="block">
-                <div className="mb-1 text-sm font-medium">
-                  {isResetMode ? "New password" : "Password"}
-                </div>
-                <div className="flex items-center gap-2 rounded-md border px-3 py-2 bg-transparent">
-                  <Lock size={16} className="text-slate-400" />
-                  <input
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={
-                      isResetMode
-                        ? "New secure password"
-                        : "At least 8 characters"
-                    }
-                    className="w-full bg-transparent text-sm outline-none"
-                    aria-label={isResetMode ? "New password" : "Password"}
-                    type={showPassword ? "text" : "password"}
-                  />
+              {isResetMode && (
+                <label className="block">
+                  <div className="mb-1 text-sm font-medium">Email</div>
+                  <div className="flex items-center gap-2 rounded-md border px-3 py-2 bg-transparent">
+                    <Mail size={16} className="text-slate-400" />
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="w-full bg-transparent text-sm outline-none"
+                      aria-label="Email address for password reset"
+                      type="email"
+                      autoComplete="email"
+                    />
+                  </div>
+                  <p className="mt-2 text-xs text-slate-400">
+                    Enter your email to receive a password reset link.
+                  </p>
+                </label>
+              )}
+
+              {!isResetMode && (
+                <label className="block">
+                  <div className="mb-1 text-sm font-medium">Password</div>
+                  <div className="flex items-center gap-2 rounded-md border px-3 py-2 bg-transparent">
+                    <Lock size={16} className="text-slate-400" />
+                    <input
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 8 characters"
+                      className="w-full bg-transparent text-sm outline-none"
+                      aria-label="Password"
+                      type={showPassword ? "text" : "password"}
+                    />
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
@@ -564,9 +554,13 @@ export default function LoginPage({ isDark = true }) {
                   </label>
                   <button
                     type="button"
-                    onClick={handlePasswordReset}
+                    onClick={() => {
+                      setMode("reset");
+                      setPassword("");
+                      resetMessage();
+                    }}
                     className="text-purple-400 hover:underline disabled:opacity-50"
-                    disabled={loading || !supabase}
+                    disabled={loading}
                   >
                     Forgot?
                   </button>
@@ -602,7 +596,7 @@ export default function LoginPage({ isDark = true }) {
                   ) : (
                     <>
                       {isResetMode
-                        ? "Update password"
+                        ? "Send reset link"
                         : mode === "login"
                           ? "Sign in"
                           : "Create account"}
@@ -614,15 +608,21 @@ export default function LoginPage({ isDark = true }) {
 
             <button
               type="button"
-              onClick={switchMode}
+              onClick={() => {
+                if (isResetMode) {
+                  setMode("login");
+                } else {
+                  switchMode();
+                }
+              }}
               className="sm:hidden text-center text-sm font-medium text-purple-300"
             >
-              {mode === "login" ? "Create account" : "Back to sign in"}
+              {isResetMode ? "Back to sign in" : (mode === "login" ? "Create account" : "Back to sign in")}
             </button>
 
             {message && (
               <div
-                className={`mt-2 rounded-md px-4 py-2 text-sm ${message.type === "error" ? (isDark ? "bg-red-800/60 text-red-100" : "bg-red-100 text-red-800") : isDark ? "bg-emerald-800/40 text-emerald-100" : "bg-emerald-100 text-emerald-800"}`}
+                className={`mt-2 rounded-md px-4 py-2 text-sm ${message.type === "error" ? (theme === "dark" ? "bg-red-800/60 text-red-100" : "bg-red-100 text-red-800") : theme === "dark" ? "bg-emerald-800/40 text-emerald-100" : "bg-emerald-100 text-emerald-800"}`}
               >
                 {message.text}
               </div>
