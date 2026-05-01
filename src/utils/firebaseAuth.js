@@ -1,20 +1,8 @@
-import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  updateProfile,
-  sendPasswordResetEmail,
-  confirmPasswordReset,
-  onAuthStateChanged,
-} from "firebase/auth";
+// Dynamic Firebase initialization - imported only when needed
+// This prevents Firebase errors at app startup
 
-// Firebase configuration - use env vars, fallback to defaults
-// Browser API keys are meant to be public, so it's safe to embed them
-const firebaseConfig = {
+// Firebase configuration - hardcoded fallback
+const getConfig = () => ({
   apiKey:
     import.meta.env.VITE_FIREBASE_API_KEY ||
     "AIzaSyDpZqyR2nzK2P6sXOdUHlQ2GBTZ2Kwi_Dc",
@@ -30,49 +18,38 @@ const firebaseConfig = {
     import.meta.env.VITE_FIREBASE_APP_ID ||
     "1:939772496272:web:af2dc2e03ecd430ca20b15",
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-7Y7G27LR25",
-};
+});
 
-// Lazy-load Firebase to prevent errors at module import time
-let app = null;
+let firebaseInitialized = false;
+let firebaseError = null;
 let authInstance = null;
-let firebaseInitError = null;
-let initAttempted = false;
 
-// Safe initialization function that won't crash
-function initFirebase() {
-  if (initAttempted) return authInstance;
-  initAttempted = true;
+// Initialize Firebase on first use (NOT at module load time) - using dynamic imports
+async function initializeFirebase() {
+  if (firebaseInitialized) return authInstance;
+  firebaseInitialized = true;
 
   try {
-    app = initializeApp(firebaseConfig);
+    const { initializeApp } = await import("firebase/app");
+    const { getAuth } = await import("firebase/auth");
+
+    const app = initializeApp(getConfig());
     authInstance = getAuth(app);
     return authInstance;
   } catch (error) {
-    console.error("Firebase initialization failed:", error?.message || error);
-    firebaseInitError = error?.message || String(error);
+    console.error("Firebase init error:", error?.message || error);
+    firebaseError = error?.message || String(error);
     return null;
   }
 }
 
 // Get auth instance, initializing if needed
-export const getAuthInstance = () => {
-  if (!initAttempted) {
-    initFirebase();
+export async function getAuthInstance() {
+  if (!firebaseInitialized) {
+    await initializeFirebase();
   }
   return authInstance;
-};
-
-// Export auth (will be null until first use)
-export const auth = authInstance;
-
-// Google Auth Provider
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: "select_account" });
-
-// Get auth config error (if any)
-export const firebaseConfigError = firebaseInitError
-  ? `Firebase Error: ${firebaseInitError}. Authentication may be unavailable.`
-  : null;
+}
 
 // Auth event constant
 export const AUTH_CHANGED_EVENT = "firebase-auth-changed";
@@ -104,17 +81,19 @@ export const clearStoredAuth = () => {
 // Sign up with email and password
 export const signUpWithEmail = async (email, password, displayName) => {
   try {
-    const authInst = getAuthInstance();
-    if (!authInst) {
+    const auth = await getAuthInstance();
+    if (!auth) {
       return {
         success: false,
-        error:
-          "Authentication is not available. Please try again later.",
+        error: "Authentication is not available. Please try again later.",
       };
     }
 
+    const { createUserWithEmailAndPassword, updateProfile } =
+      await import("firebase/auth");
+
     const userCredential = await createUserWithEmailAndPassword(
-      authInst,
+      auth,
       email,
       password,
     );
@@ -157,17 +136,18 @@ export const signUpWithEmail = async (email, password, displayName) => {
 // Sign in with email and password
 export const signInWithEmail = async (email, password) => {
   try {
-    const authInst = getAuthInstance();
-    if (!authInst) {
+    const auth = await getAuthInstance();
+    if (!auth) {
       return {
         success: false,
-        error:
-          "Authentication is not available. Please try again later.",
+        error: "Authentication is not available. Please try again later.",
       };
     }
 
+    const { signInWithEmailAndPassword } = await import("firebase/auth");
+
     const userCredential = await signInWithEmailAndPassword(
-      authInst,
+      auth,
       email,
       password,
     );
@@ -185,7 +165,6 @@ export const signInWithEmail = async (email, password) => {
     persistAuth(authData);
     return { success: true, user: authData };
   } catch (error) {
-    // Better error messages
     let errorMessage = error.message;
 
     if (error.code === "auth/user-not-found") {
@@ -194,7 +173,7 @@ export const signInWithEmail = async (email, password) => {
       error.code === "auth/invalid-password" ||
       error.code === "auth/invalid-credential"
     ) {
-      errorMessage = "Invalid email or password. Please try again.";
+      errorMessage = "Invalid email or password.";
     } else if (error.code === "auth/too-many-requests") {
       errorMessage = "Too many login attempts. Please try again later.";
     }
@@ -206,16 +185,20 @@ export const signInWithEmail = async (email, password) => {
 // Sign in with Google
 export const signInWithGoogle = async () => {
   try {
-    const authInst = getAuthInstance();
-    if (!authInst) {
+    const auth = await getAuthInstance();
+    if (!auth) {
       return {
         success: false,
-        error:
-          "Authentication is not available. Please try again later.",
+        error: "Authentication is not available. Please try again later.",
       };
     }
 
-    const result = await signInWithPopup(authInst, googleProvider);
+    const { signInWithPopup, GoogleAuthProvider } =
+      await import("firebase/auth");
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+
+    const result = await signInWithPopup(auth, googleProvider);
     const idToken = await result.user.getIdToken();
 
     const authData = {
@@ -239,14 +222,16 @@ export const signInWithGoogle = async () => {
 // Send password reset email
 export const resetPassword = async (email) => {
   try {
-    const authInst = getAuthInstance();
-    if (!authInst) {
+    const auth = await getAuthInstance();
+    if (!auth) {
       return {
         success: false,
         error: "Authentication is not available.",
       };
     }
-    await sendPasswordResetEmail(authInst, email);
+
+    const { sendPasswordResetEmail } = await import("firebase/auth");
+    await sendPasswordResetEmail(auth, email);
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -256,14 +241,16 @@ export const resetPassword = async (email) => {
 // Confirm password reset
 export const confirmReset = async (code, newPassword) => {
   try {
-    const authInst = getAuthInstance();
-    if (!authInst) {
+    const auth = await getAuthInstance();
+    if (!auth) {
       return {
         success: false,
         error: "Authentication is not available.",
       };
     }
-    await confirmPasswordReset(authInst, code, newPassword);
+
+    const { confirmPasswordReset } = await import("firebase/auth");
+    await confirmPasswordReset(auth, code, newPassword);
     return { success: true };
   } catch (error) {
     return { success: false, error: error.message };
@@ -273,45 +260,61 @@ export const confirmReset = async (code, newPassword) => {
 // Sign out
 export const logOut = async () => {
   try {
-    const authInst = getAuthInstance();
-    if (authInst) {
-      await signOut(authInst);
+    const auth = await getAuthInstance();
+    if (auth) {
+      const { signOut } = await import("firebase/auth");
+      await signOut(auth);
     }
     clearStoredAuth();
     return { success: true };
   } catch (error) {
+    clearStoredAuth();
     return { success: false, error: error.message };
   }
 };
 
 // Listen to auth state changes
-export const onAuthStateChangeListener = (callback) => {
-  const authInst = getAuthInstance();
-  if (!authInst) {
-    console.warn("Firebase auth not initialized");
+export const onAuthStateChangeListener = async (callback) => {
+  try {
+    const auth = await getAuthInstance();
+    if (!auth) {
+      console.warn("Firebase auth not available");
+      callback(null);
+      return () => {};
+    }
+
+    const { onAuthStateChanged } = await import("firebase/auth");
+
+    return onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const token = await user.getIdToken();
+        const authData = {
+          user: {
+            id: user.uid,
+            email: user.email,
+            fullName: user.displayName || user.email.split("@")[0],
+            photoURL: user.photoURL,
+          },
+          token,
+        };
+        persistAuth(authData);
+        callback(authData);
+      } else {
+        clearStoredAuth();
+        callback(null);
+      }
+    });
+  } catch (error) {
+    console.error("Auth listener error:", error);
     callback(null);
     return () => {};
   }
-
-  return onAuthStateChanged(authInst, async (user) => {
-    if (user) {
-      const token = await user.getIdToken();
-      const authData = {
-        user: {
-          id: user.uid,
-          email: user.email,
-          fullName: user.displayName || user.email.split("@")[0],
-          photoURL: user.photoURL,
-        },
-        token,
-      };
-      persistAuth(authData);
-      callback(authData);
-    } else {
-      clearStoredAuth();
-      callback(null);
-    }
-  });
 };
 
+// Export auth config error
+export const firebaseConfigError = firebaseError
+  ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
+  : null;
+
+// Default export
 export default authInstance;
