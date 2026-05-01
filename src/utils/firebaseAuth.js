@@ -1,59 +1,49 @@
 // Dynamic Firebase initialization - imported only when needed
 // This prevents Firebase errors at app startup
 
-// Firebase configuration - prioritize env vars, use minimal fallback
-const getConfig = () => ({
-  apiKey:
-    import.meta.env.VITE_FIREBASE_API_KEY ||
-    "AIzaSyC0PXBvO7LhwDdVvPbJm8gSQ2TS1yVxRnI",
-  authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "skyx-project.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "skyx-project",
-  storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "skyx-project.appspot.com",
-  messagingSenderId:
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-XXXXX",
-});
+// Firebase configuration - only use if all env vars are properly set
+const getConfig = () => {
+  const config = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  };
+
+  // Only return config if all required fields are set
+  const hasAllRequired = config.apiKey && config.authDomain && config.projectId;
+  return hasAllRequired ? config : null;
+};
 
 let firebaseInitialized = false;
-let firebaseInitializing = false;
 let firebaseError = null;
 let authInstance = null;
 
 // Initialize Firebase on first use (NOT at module load time) - using dynamic imports
 async function initializeFirebase() {
   if (firebaseInitialized) return authInstance;
-  if (firebaseInitializing) {
-    // Wait for ongoing initialization
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (firebaseInitialized) {
-          clearInterval(checkInterval);
-          resolve(authInstance);
-        }
-      }, 100);
-    });
-  }
-
-  firebaseInitializing = true;
+  firebaseInitialized = true;
 
   try {
+    const config = getConfig();
+    if (!config) {
+      console.warn("Firebase config incomplete - using localStorage auth only");
+      firebaseError = "Firebase configuration not available";
+      return null;
+    }
+
     const { initializeApp } = await import("firebase/app");
     const { getAuth } = await import("firebase/auth");
 
-    const app = initializeApp(getConfig());
+    const app = initializeApp(config);
     authInstance = getAuth(app);
-    firebaseInitialized = true;
-    firebaseInitializing = false;
     return authInstance;
   } catch (error) {
-    console.warn("Firebase initialization warning:", error?.message || error);
+    console.warn("Firebase initialization skipped:", error?.message || error);
     firebaseError = error?.message || String(error);
-    firebaseInitialized = true;
-    firebaseInitializing = false;
-    // Don't throw - return null to allow app to continue
     return null;
   }
 }
@@ -326,13 +316,10 @@ export const onAuthStateChangeListener = async (callback) => {
   }
 };
 
-// Export auth config error (safe getter)
-export const getFirebaseConfigError = () =>
-  firebaseError
-    ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
-    : null;
+// Export auth config error
+export const firebaseConfigError = firebaseError
+  ? `Firebase Error: ${firebaseError}. Sign-in may be unavailable.`
+  : null;
 
-export const firebaseConfigError = null; // Placeholder
-
-// Default export - safe fallback
-export default null;
+// Default export
+export default authInstance;
