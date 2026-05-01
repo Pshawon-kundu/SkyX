@@ -1,9 +1,22 @@
 // Dynamic Firebase initialization - imported only when needed
 // This prevents Firebase errors at app startup
 
+// Check if Firebase env vars are configured
+const isFirebaseConfigured = () => {
+  return (
+    !!import.meta.env.VITE_FIREBASE_API_KEY &&
+    !!import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+    !!import.meta.env.VITE_FIREBASE_PROJECT_ID
+  );
+};
+
 // Firebase configuration - only use if all env vars are properly set
 const getConfig = () => {
-  const config = {
+  if (!isFirebaseConfigured()) {
+    return null;
+  }
+
+  return {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
     projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -12,10 +25,6 @@ const getConfig = () => {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
     measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
   };
-
-  // Only return config if all required fields are set
-  const hasAllRequired = config.apiKey && config.authDomain && config.projectId;
-  return hasAllRequired ? config : null;
 };
 
 let firebaseInitialized = false;
@@ -27,16 +36,17 @@ async function initializeFirebase() {
   if (firebaseInitialized) return authInstance;
   firebaseInitialized = true;
 
-  try {
-    const config = getConfig();
-    if (!config) {
-      console.warn("Firebase config incomplete - using localStorage auth only");
-      firebaseError = "Firebase configuration not available";
-      return null;
-    }
+  if (!isFirebaseConfigured()) {
+    console.warn("Firebase not configured - using localStorage auth only");
+    return null;
+  }
 
+  try {
     const { initializeApp } = await import("firebase/app");
     const { getAuth } = await import("firebase/auth");
+
+    const config = getConfig();
+    if (!config) return null;
 
     const app = initializeApp(config);
     authInstance = getAuth(app);
@@ -44,6 +54,7 @@ async function initializeFirebase() {
   } catch (error) {
     console.warn("Firebase initialization skipped:", error?.message || error);
     firebaseError = error?.message || String(error);
+    authInstance = null;
     return null;
   }
 }
