@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  User,
-  ArrowLeft,
-} from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, User, ArrowLeft } from "lucide-react";
 import {
   persistAuth,
   supabase,
@@ -52,57 +45,58 @@ export default function LoginPage({ isDark = true }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(() =>
-    supabaseConfigError
-      ? { type: "error", text: supabaseConfigError }
-      : null,
+    supabaseConfigError ? { type: "error", text: supabaseConfigError } : null,
   );
   const syncingTokenRef = useRef(null);
   const redirectTimerRef = useRef(null);
 
   const resetMessage = () => setMessage(null);
 
-  const syncProfile = useCallback(async (session) => {
-    if (!session?.access_token) return;
-    if (syncingTokenRef.current === session.access_token) return;
+  const syncProfile = useCallback(
+    async (session) => {
+      if (!session?.access_token) return;
+      if (syncingTokenRef.current === session.access_token) return;
 
-    syncingTokenRef.current = session.access_token;
-    setLoading(true);
+      syncingTokenRef.current = session.access_token;
+      setLoading(true);
 
-    try {
-      const response = await fetch(`${API_BASE}/api/users/sync-profile`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          supabaseToken: session.access_token,
-          fullName: getSessionName(session, name),
-        }),
-      });
+      try {
+        const response = await fetch(`${API_BASE}/api/users/sync-profile`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            supabaseToken: session.access_token,
+            fullName: getSessionName(session, name),
+          }),
+        });
 
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || "Sync failed");
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "Sync failed");
+        }
+
+        persistAuth(data);
+        setMessage({
+          type: "success",
+          text: "Signed in successfully.",
+        });
+
+        window.clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = window.setTimeout(() => {
+          navigate("/");
+        }, 500);
+      } catch (error) {
+        syncingTokenRef.current = null;
+        setMessage({
+          type: "error",
+          text: error.message || "Failed to sync profile.",
+        });
+      } finally {
+        setLoading(false);
       }
-
-      persistAuth(data);
-      setMessage({
-        type: "success",
-        text: "Signed in successfully.",
-      });
-
-      window.clearTimeout(redirectTimerRef.current);
-      redirectTimerRef.current = window.setTimeout(() => {
-        navigate("/");
-      }, 500);
-    } catch (error) {
-      syncingTokenRef.current = null;
-      setMessage({
-        type: "error",
-        text: error.message || "Failed to sync profile.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [name, navigate]);
+    },
+    [name, navigate],
+  );
 
   useEffect(() => () => window.clearTimeout(redirectTimerRef.current), []);
 
@@ -169,7 +163,10 @@ export default function LoginPage({ isDark = true }) {
         setLoading(true);
 
         if (mode === "reset") {
-          setMessage({ type: "error", text: "Password reset is unavailable without Supabase configuration." });
+          setMessage({
+            type: "error",
+            text: "Password reset is unavailable without Supabase configuration.",
+          });
           setLoading(false);
           return;
         }
@@ -187,7 +184,10 @@ export default function LoginPage({ isDark = true }) {
           }
 
           persistAuth(data);
-          setMessage({ type: "success", text: "Account created and signed in." });
+          setMessage({
+            type: "success",
+            text: "Account created and signed in.",
+          });
           window.setTimeout(() => navigate("/"), 400);
           return;
         }
@@ -209,7 +209,10 @@ export default function LoginPage({ isDark = true }) {
         window.setTimeout(() => navigate("/"), 400);
         return;
       } catch (error) {
-        setMessage({ type: "error", text: error.message || "Authentication failed." });
+        setMessage({
+          type: "error",
+          text: error.message || "Authentication failed.",
+        });
       } finally {
         setLoading(false);
       }
@@ -429,7 +432,7 @@ export default function LoginPage({ isDark = true }) {
                     className={`flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 text-sm font-medium hover:shadow-sm disabled:opacity-50 ${isDark ? "bg-slate-800 text-white border-slate-700" : "bg-white text-slate-700 border-slate-200"}`}
                     type="button"
                     aria-label="Sign in with Google"
-                      disabled={loading || !supabase}
+                    disabled={loading || !supabase}
                   >
                     <svg
                       className="h-5 w-5"
@@ -461,7 +464,7 @@ export default function LoginPage({ isDark = true }) {
                     className="flex w-full items-center justify-center gap-3 rounded-lg border px-4 py-3 bg-slate-800 text-sm font-medium hover:shadow-sm disabled:opacity-50"
                     type="button"
                     aria-label="Sign in with X"
-                      disabled={loading || !supabase}
+                    disabled={loading || !supabase}
                   >
                     <svg
                       width="18"
@@ -532,7 +535,9 @@ export default function LoginPage({ isDark = true }) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={
-                      isResetMode ? "New secure password" : "At least 8 characters"
+                      isResetMode
+                        ? "New secure password"
+                        : "At least 8 characters"
                     }
                     className="w-full bg-transparent text-sm outline-none"
                     aria-label={isResetMode ? "New password" : "Password"}
@@ -572,7 +577,7 @@ export default function LoginPage({ isDark = true }) {
                 <button
                   type="submit"
                   className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-linear-to-r from-purple-500 to-pink-500 px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
-                   disabled={loading}
+                  disabled={loading}
                 >
                   {loading ? (
                     <span className="inline-flex items-center gap-2">

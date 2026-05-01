@@ -14,7 +14,7 @@ SkyX profile data, points, referrals, tasks, task completions, game sessions, an
 
 ### Frontend (`.env`)
 
-```
+```env
 VITE_SUPABASE_URL=https://iblmaweycrpqwozjurhv.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_API_BASE_URL=http://localhost:5000
@@ -22,7 +22,7 @@ VITE_API_BASE_URL=http://localhost:5000
 
 ### Backend (`.env`)
 
-```
+```env
 SUPABASE_URL=https://iblmaweycrpqwozjurhv.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 JWT_SECRET=dev_secret_key_skyx_2024
@@ -123,7 +123,7 @@ Syncs user profile from Supabase into MongoDB after OAuth/email signup.
 
 ## Database Schema Updates
 
-### Users Collection
+### MongoDB Users Collection (Current Setup)
 
 New field added:
 
@@ -132,6 +132,69 @@ supabaseId?: string  // Unique Supabase user ID, indexed
 ```
 
 This field links MongoDB users to Supabase auth accounts.
+
+## Optional: Migrate to Supabase PostgreSQL
+
+To move from MongoDB to Supabase Postgres for complete data management:
+
+### 1. Apply PostgreSQL Schema Migration
+
+1. Go to **Supabase Dashboard** > **SQL Editor**
+2. Create a new query
+3. Copy the complete schema from [`/backend/sql/001_create_skyx_schema.sql`](/backend/sql/001_create_skyx_schema.sql)
+4. **Important**: Execute in sections (numbered 1-20) to avoid conflicts
+5. Verify all tables created: `public.users`, `public.referrals`, `public.tasks`, `public.task_completions`, `public.game_sessions`, `public.reward_transactions`
+
+**Schema includes:**
+
+- All 7 core tables with proper relationships
+- Indexes for performance
+- Row Level Security (RLS) policies
+- Stored functions for point calculations
+- Materialized view for leaderboard
+
+### 2. Reference All SQL Queries
+
+For common operations (create user, award points, query leaderboard, etc.), see [`/backend/sql/002_queries_reference.sql`](/backend/sql/002_queries_reference.sql)
+
+**Quick examples:**
+
+```sql
+-- Create new user (after Supabase signup)
+INSERT INTO public.users (supabase_id, email, full_name, referral_code)
+VALUES ('uuid', 'user@example.com', 'John Doe', 'SKYXYZ123');
+
+-- Award points
+SELECT public.award_points('user-uuid'::uuid, 100, 'task_completion'::reward_type, 'Task completed');
+
+-- Get leaderboard
+SELECT * FROM public.leaderboard_view WHERE rank <= 100;
+```
+
+### 3. Update Backend to Use PostgreSQL
+
+Modify `backend/api/users.ts` and other endpoints to query PostgreSQL instead of MongoDB:
+
+```typescript
+// Instead of User.findById() (MongoDB)
+// Use direct SQL queries via Supabase client
+const { data, error } = await supabase
+  .from("users")
+  .select("*")
+  .eq("supabase_id", supabaseId)
+  .single();
+```
+
+### 4. Enable Row Level Security
+
+All tables have RLS enabled. Users can only see/modify their own data by default. To test:
+
+```sql
+-- Verify RLS policies
+SELECT schemaname, tablename, policyname
+FROM pg_policies
+WHERE schemaname = 'public';
+```
 
 ## Testing Checklist
 
