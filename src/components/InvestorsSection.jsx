@@ -25,11 +25,6 @@ const investors = [
     name: "B Strategy",
     logoSrc: "/investors/b-strategy.png",
   },
-  {
-    name: "Crunchbase",
-    logoSrc: "/investors/crunchbase.svg",
-    href: "https://www.crunchbase.com/",
-  },
 ];
 
 function InvestorsSection({ theme = "dark" }) {
