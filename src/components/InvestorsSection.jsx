@@ -1,5 +1,4 @@
 import { motion as Motion } from "framer-motion";
-import { animations } from "../data/animations";
 
 // Investor logos as SVG components
 const LogoA16Z = ({ grayscale }) => (
@@ -222,6 +221,49 @@ const LogoDragonfly = ({ grayscale }) => (
   </svg>
 );
 
+const LogoMetalpha = ({ grayscale }) => (
+  <svg
+    viewBox="0 0 140 100"
+    fill="none"
+    className={grayscale ? "grayscale" : ""}
+  >
+    <rect x="12" y="54" width="16" height="26" fill="#df6a3f" />
+    <rect x="38" y="40" width="16" height="40" fill="#df6a3f" />
+    <path d="M 64 28 L 80 20 V 80 H 64 Z" fill="#df6a3f" />
+    <text
+      x="90"
+      y="60"
+      fontSize="26"
+      fontWeight="700"
+      fill="currentColor"
+      fontFamily="Arial, sans-serif"
+    >
+      M
+    </text>
+  </svg>
+);
+
+const LogoCrunchbase = ({ grayscale }) => (
+  <svg
+    viewBox="0 0 100 100"
+    fill="none"
+    className={grayscale ? "grayscale" : ""}
+  >
+    <circle cx="50" cy="50" r="38" fill="#146aff" />
+    <text
+      x="50"
+      y="63"
+      fontSize="40"
+      fontWeight="800"
+      fill="white"
+      textAnchor="middle"
+      fontFamily="Arial, sans-serif"
+    >
+      cb
+    </text>
+  </svg>
+);
+
 function InvestorsSection({ theme = "dark" }) {
   const isDark = theme === "dark";
 
@@ -251,7 +293,13 @@ function InvestorsSection({ theme = "dark" }) {
     { name: "Inovia Capital", logo: LogoPantera },
     { name: "Backed VC", logo: LogoMulticoin },
     { name: "Skyland Ventures", logo: LogoCoinbase },
+    { name: "Metalpha", logo: LogoMetalpha },
     { name: "B Strategy", logo: LogoBinance },
+    {
+      name: "Crunchbase",
+      logo: LogoCrunchbase,
+      href: "https://www.crunchbase.com/",
+    },
   ];
 
   return (
@@ -315,6 +363,8 @@ function InvestorsSection({ theme = "dark" }) {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
               {investors.map((investor, index) => {
                 const LogoComponent = investor.logo;
+                const CardComponent = investor.href ? Motion.a : Motion.div;
+
                 return (
                   <Motion.div
                     key={investor.name}
@@ -324,7 +374,15 @@ function InvestorsSection({ theme = "dark" }) {
                     transition={{ duration: 0.6, delay: index * 0.05 }}
                     className="group"
                   >
-                    <div
+                    <CardComponent
+                      {...(investor.href
+                        ? {
+                            href: investor.href,
+                            target: "_blank",
+                            rel: "noreferrer",
+                            "aria-label": `Open ${investor.name}`,
+                          }
+                        : {})}
                       className={`relative rounded-xl border p-6 backdrop-blur-sm transition-all h-full flex flex-col items-center justify-center ${
                         isDark
                           ? "border-purple-400/20 bg-gradient-to-br from-slate-900/80 via-slate-950/60 to-slate-950/80 hover:border-purple-400/40"
@@ -334,7 +392,7 @@ function InvestorsSection({ theme = "dark" }) {
                     >
                       {/* Logo */}
                       <div
-                        className={`w-16 h-16 sm:w-20 sm:h-20 mb-4 flex items-center justify-center transition-all grayscale group-hover:grayscale-0 ${
+                        className={`w-16 h-16 sm:w-20 sm:h-20 mb-4 flex items-center justify-center transition-all grayscale group-hover:grayscale-0 [&>svg]:h-full [&>svg]:w-full ${
                           isDark
                             ? "text-slate-300 group-hover:text-purple-300"
                             : "text-slate-600 group-hover:text-purple-600"
@@ -352,7 +410,7 @@ function InvestorsSection({ theme = "dark" }) {
 
                       {/* Hover Glow Effect */}
                       <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-xl -z-10" />
-                    </div>
+                    </CardComponent>
                   </Motion.div>
                 );
               })}
