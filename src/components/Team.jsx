@@ -1,5 +1,5 @@
 import { motion as Motion } from "framer-motion";
-import { BadgeCheck, Sparkles, UserRound, Users } from "lucide-react";
+import { BadgeCheck, Building2, Sparkles, UserRound, Users } from "lucide-react";
 
 function createInitials(name = "") {
   return (
@@ -106,8 +106,19 @@ function Team({ members = [], isDark = true }) {
                 {member.designation}
               </div>
 
+              <div
+                className={`mx-auto mt-3 inline-flex max-w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold ${
+                  isDark
+                    ? "bg-slate-900/70 text-slate-300"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                <Building2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{member.company}</span>
+              </div>
+
               <p
-                className={`mx-auto mt-5 min-h-[72px] max-w-xs text-sm leading-6 ${
+                className={`mx-auto mt-4 min-h-[96px] max-w-xs text-sm leading-6 ${
                   isDark ? "text-slate-400" : "text-slate-600"
                 }`}
               >

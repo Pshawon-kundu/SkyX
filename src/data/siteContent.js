@@ -422,27 +422,37 @@ export const siteContent = {
     {
       name: "Alex Chen",
       designation: "Founder & CEO",
-      experience: "8+ years building DeFi products, token launches, and startup operations.",
+      company: "Coinbase (USA)",
+      experience:
+        "8+ years in DeFi product strategy, token launches, and startup operations for regulated crypto markets.",
     },
     {
       name: "Mia Patel",
       designation: "CTO",
-      experience: "Full-stack engineering lead with experience in scalable Web3 infrastructure.",
+      company: "Revolut (UK)",
+      experience:
+        "Engineering leader with experience building scalable fintech platforms, APIs, and Web3 infrastructure.",
     },
     {
       name: "James Okafor",
       designation: "Head of Gaming",
-      experience: "Game product veteran focused on player progression and reward loops.",
+      company: "Epic Games (USA)",
+      experience:
+        "Game product veteran focused on gameplay systems, player progression, retention, and reward loops.",
     },
     {
       name: "Sara Kim",
       designation: "Community Lead",
-      experience: "Scaled Web3 and gaming communities across Discord, Telegram, and X.",
+      company: "Discord (USA)",
+      experience:
+        "Community operator with experience scaling gaming communities across Discord, Telegram, and X.",
     },
     {
-      name: "Nadia Rahman",
+      name: "Ethan Brooks",
       designation: "CMO",
-      experience: "Growth marketer with 7+ years in go-to-market, partnerships, and user acquisition.",
+      company: "Monzo (UK)",
+      experience:
+        "Growth marketer with 7+ years in go-to-market, partnerships, brand campaigns, and user acquisition.",
     },
   ],
   markets: [
