@@ -4,6 +4,7 @@ const Home = lazy(() => import("./pages/Home"));
 const LoginPage = lazy(() => import("./components/LoginPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const SplashScreen = lazy(() => import("./components/SplashScreen"));
+const SkyXMiniGame = lazy(() => import("./components/SkyXMiniGame"));
 import { siteContent } from "./data/siteContent";
 import { getStoredAuth } from "./utils/firebaseAuth";
 
@@ -105,6 +106,9 @@ function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+      </Suspense>
+      <Suspense fallback={null}>
+        <SkyXMiniGame theme={theme} />
       </Suspense>
     </>
   );

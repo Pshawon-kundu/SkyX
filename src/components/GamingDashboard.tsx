@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ChevronRight,
 } from "lucide-react";
+import { openSkyXMiniGame } from "../utils/gameRewards";
 
 // Type definitions
 interface StatItem {
@@ -248,7 +249,10 @@ const GamingDashboard: React.FC<{ isDark?: boolean }> = ({ isDark = true }) => {
   ];
 
   return (
-    <section className="relative w-full py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section
+      id="game"
+      className="relative w-full py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden"
+    >
       {/* Cosmic background */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
@@ -325,14 +329,18 @@ const GamingDashboard: React.FC<{ isDark?: boolean }> = ({ isDark = true }) => {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mb-20 md:mb-28"
         >
-          <button className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-white">
+          <button
+            type="button"
+            onClick={openSkyXMiniGame}
+            className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-lg font-bold uppercase tracking-widest text-white"
+          >
             {/* Glow effect */}
             <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-cyan-600 to-purple-600 rounded-lg opacity-0 group-hover:opacity-100 blur transition duration-500" />
 
             {/* Button content */}
             <div className="relative flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-lg group-hover:from-purple-500 group-hover:to-cyan-500 transition">
               <Gamepad2 size={18} />
-              Open Progress
+              Play Game
               <Motion.span
                 animate={{ x: [0, 4, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
