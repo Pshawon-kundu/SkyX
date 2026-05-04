@@ -10,6 +10,7 @@ export const siteContent = {
     { label: "Venture Engine", href: "#how" },
     { label: "Ecosystem", href: "#ecosystem" },
     { label: "Dashboard", href: "#dashboard-preview" },
+    { label: "Team", href: "#team" },
     { label: "White Paper", href: "#white-paper" },
     { label: "Docs", href: "#about" },
   ],
@@ -416,6 +417,12 @@ export const siteContent = {
     "Blockchain Networks",
     "Gaming Publishers",
     "Community DAOs",
+  ],
+  team: [
+    { name: "Alex Chen", designation: "Founder & CEO" },
+    { name: "Mia Patel", designation: "CTO" },
+    { name: "James Okafor", designation: "Head of Gaming" },
+    { name: "Sara Kim", designation: "Community Lead" },
   ],
   markets: [
     "Gaming Market",
