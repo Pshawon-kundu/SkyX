@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { animations } from "../data/animations";
+import { openSkyXMiniGame } from "../utils/gameRewards";
 
 const FIRST_NAMES = [
   "Alex",
@@ -723,8 +724,9 @@ const DailyLeaderboard = ({ theme }) => {
                 <CalendarClock className="h-4 w-4" aria-hidden="true" />
                 Reset: 00:00 UTC
               </div>
-              <a
-                href="#profile"
+              <button
+                type="button"
+                onClick={openSkyXMiniGame}
                 className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-bold ${
                   isDark
                     ? "bg-cyan-300 text-slate-950 hover:bg-cyan-200"
@@ -733,7 +735,7 @@ const DailyLeaderboard = ({ theme }) => {
               >
                 Join the Race
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
-              </a>
+              </button>
             </div>
           </Motion.div>
 
