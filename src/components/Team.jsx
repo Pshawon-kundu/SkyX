@@ -62,7 +62,7 @@ function Team({ members = [], isDark = true }) {
           </h2>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {members.map((member) => (
             <Motion.article
               key={member.name}
@@ -106,8 +106,16 @@ function Team({ members = [], isDark = true }) {
                 {member.designation}
               </div>
 
+              <p
+                className={`mx-auto mt-5 min-h-[72px] max-w-xs text-sm leading-6 ${
+                  isDark ? "text-slate-400" : "text-slate-600"
+                }`}
+              >
+                {member.experience}
+              </p>
+
               <div
-                className={`mt-8 flex items-center justify-center gap-3 border-t pt-5 ${
+                className={`mt-6 flex items-center justify-center gap-3 border-t pt-5 ${
                   isDark ? "border-slate-800" : "border-slate-200"
                 }`}
               >

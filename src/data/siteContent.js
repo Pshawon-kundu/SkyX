@@ -419,10 +419,31 @@ export const siteContent = {
     "Community DAOs",
   ],
   team: [
-    { name: "Alex Chen", designation: "Founder & CEO" },
-    { name: "Mia Patel", designation: "CTO" },
-    { name: "James Okafor", designation: "Head of Gaming" },
-    { name: "Sara Kim", designation: "Community Lead" },
+    {
+      name: "Alex Chen",
+      designation: "Founder & CEO",
+      experience: "8+ years building DeFi products, token launches, and startup operations.",
+    },
+    {
+      name: "Mia Patel",
+      designation: "CTO",
+      experience: "Full-stack engineering lead with experience in scalable Web3 infrastructure.",
+    },
+    {
+      name: "James Okafor",
+      designation: "Head of Gaming",
+      experience: "Game product veteran focused on player progression and reward loops.",
+    },
+    {
+      name: "Sara Kim",
+      designation: "Community Lead",
+      experience: "Scaled Web3 and gaming communities across Discord, Telegram, and X.",
+    },
+    {
+      name: "Nadia Rahman",
+      designation: "CMO",
+      experience: "Growth marketer with 7+ years in go-to-market, partnerships, and user acquisition.",
+    },
   ],
   markets: [
     "Gaming Market",
