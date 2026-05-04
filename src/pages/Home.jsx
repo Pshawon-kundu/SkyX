@@ -27,6 +27,7 @@ const Profile = lazy(() => import("../components/profile/UserProfile"));
 const Apps = lazy(() => import("../components/Apps"));
 const Partners = lazy(() => import("../components/Partners"));
 const InvestorsSection = lazy(() => import("../components/InvestorsSection"));
+const Team = lazy(() => import("../components/Team"));
 const Community = lazy(() => import("../components/Community"));
 const FinalCta = lazy(() => import("../components/FinalCta"));
 const Footer = lazy(() => import("../components/Footer"));
@@ -212,6 +213,9 @@ function Home({
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
             <InvestorsSection theme={theme} />
+          </Suspense>
+          <Suspense fallback={<div className="min-h-96" />}>
+            <Team members={content.team} isDark={theme === "dark"} />
           </Suspense>
           <Suspense fallback={<div className="min-h-96" />}>
             <Community

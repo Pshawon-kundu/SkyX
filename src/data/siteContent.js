@@ -10,6 +10,7 @@ export const siteContent = {
     { label: "Venture Engine", href: "#how" },
     { label: "Ecosystem", href: "#ecosystem" },
     { label: "Dashboard", href: "#dashboard-preview" },
+    { label: "Team", href: "#team" },
     { label: "White Paper", href: "#white-paper" },
     { label: "Docs", href: "#about" },
   ],
@@ -416,6 +417,43 @@ export const siteContent = {
     "Blockchain Networks",
     "Gaming Publishers",
     "Community DAOs",
+  ],
+  team: [
+    {
+      name: "Alex Chen",
+      designation: "Founder & CEO",
+      company: "Coinbase (USA)",
+      experience:
+        "8+ years in DeFi product strategy, token launches, and startup operations for regulated crypto markets.",
+    },
+    {
+      name: "Mia Patel",
+      designation: "CTO",
+      company: "Revolut (UK)",
+      experience:
+        "Engineering leader with experience building scalable fintech platforms, APIs, and Web3 infrastructure.",
+    },
+    {
+      name: "James Okafor",
+      designation: "Head of Gaming",
+      company: "Epic Games (USA)",
+      experience:
+        "Game product veteran focused on gameplay systems, player progression, retention, and reward loops.",
+    },
+    {
+      name: "Sara Kim",
+      designation: "Community Lead",
+      company: "Discord (USA)",
+      experience:
+        "Community operator with experience scaling gaming communities across Discord, Telegram, and X.",
+    },
+    {
+      name: "Ethan Brooks",
+      designation: "CMO",
+      company: "Monzo (UK)",
+      experience:
+        "Growth marketer with 7+ years in go-to-market, partnerships, brand campaigns, and user acquisition.",
+    },
   ],
   markets: [
     "Gaming Market",
